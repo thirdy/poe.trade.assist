@@ -61,7 +61,7 @@ public class Main extends Application {
         searchService.searchesProperty().bind(searchPane.dataProperty());
         resultPane.statusLabel.textProperty().bind(searchService.messageProperty());
         resultPane.runNowButton.setOnAction(e -> searchService.restart() );
-        resultPane.noOfMinsTextField.textProperty().bind(searchService.minsToSleepProperty());
+        searchService.minsToSleepProperty().bind(resultPane.noOfMinsTextField.textProperty());
         setupResultPaneBinding(searchPane, resultPane, searchService);
         
         stage.setOnCloseRequest(we -> {
