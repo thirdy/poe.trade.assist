@@ -31,15 +31,12 @@ import com.google.gson.reflect.TypeToken;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import poe.trade.assist.scraper.SearchPageScraper.SearchResultItem;
 import poe.trade.assist.service.SearchService;
  
 public class Main extends Application {
@@ -79,7 +76,7 @@ public class Main extends Application {
         root.getChildren().addAll(container);
         Scene scene = new Scene(root);
         stage.getIcons().add(new Image("/assist.png"));
-        stage.setTitle("poe.trade.assist");
+        stage.setTitle("poe.trade.assist 0.2");
         stage.setWidth(1150);
         stage.setHeight(550);
         stage.setScene(scene);
