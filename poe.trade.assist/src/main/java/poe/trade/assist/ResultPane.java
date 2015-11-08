@@ -19,9 +19,13 @@ package poe.trade.assist;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -32,9 +36,13 @@ public class ResultPane extends VBox {
 	
 	ListView<SearchResultItem> listView = new ListView<SearchResultItem>();
 	Label statusLabel = new Label("Ready");
+	Button runNowButton = new Button("Run now");
+	TextField noOfMinsTextField = new TextField();
 	
 	public ResultPane() {
 		listView.setMinWidth(600);
+		noOfMinsTextField.setPrefWidth(120);
+		noOfMinsTextField.setPromptText("Minutes to sleep");
 		setupTooltip();
 		setupSelectionListener();
 		
@@ -42,7 +50,9 @@ public class ResultPane extends VBox {
 		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 		setSpacing(5);
 		setPadding(new Insets(10, 0, 0, 10));
-		getChildren().addAll(label, listView, statusLabel);
+		HBox hBox = new HBox(3, runNowButton, noOfMinsTextField, statusLabel);
+		hBox.setAlignment(Pos.CENTER_LEFT);
+		getChildren().addAll(label, listView, hBox);
 	}
 
 	private void setupSelectionListener() {

@@ -30,6 +30,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -59,7 +60,9 @@ public class Main extends Application {
         
         searchService.searchesProperty().bind(searchPane.dataProperty());
         resultPane.statusLabel.textProperty().bind(searchService.messageProperty());
-        setupResultPaneBinding(searchPane, resultPane);
+        resultPane.runNowButton.setOnAction(e -> searchService.restart() );
+        resultPane.noOfMinsTextField.textProperty().bind(searchService.minsToSleepProperty());
+        setupResultPaneBinding(searchPane, resultPane, searchService);
         
         stage.setOnCloseRequest(we -> {
         	List<Search> list = new ArrayList<>(searchPane.table.getItems());
@@ -86,6 +89,7 @@ public class Main extends Application {
 	private List<Search> loadSearchListFromFile() {
 		List<Search> list = Arrays.asList(new Search("Tabula 30c", "http://poe.trade/search/oremarohokinon"));
 		// 1ex aegis http://poe.trade/search/atamiomimetami
+		// kaom's heart http://poe.trade/search/kuwahamigaruri
 		
 		File file = getSearchFile();
 		try {
@@ -122,19 +126,23 @@ public class Main extends Application {
 		return file;
 	}
 
-	private void setupResultPaneBinding(SearchPane searchPane, ResultPane resultPane) {
-		resultPane.listView.itemsProperty().bind(
-        
-	        Bindings.createObjectBinding(() -> {
-	        	ObservableList<SearchResultItem> result = FXCollections.observableArrayList();
-	        	Search search = searchPane.table.getSelectionModel().getSelectedItem();
-	        	if (search != null && search.getResultList() != null) {
-	        		result = FXCollections.observableArrayList(search.getResultList());
-				}
-	        	return result;
-	        }, searchPane.table.getSelectionModel().selectedItemProperty())
-        
-       );
+	private void setupResultPaneBinding(SearchPane searchPane, ResultPane resultPane, SearchService searchService) {
+		searchPane.table.getSelectionModel().selectedItemProperty().addListener((ob, o, n) -> {
+			if (n != null && n.getResultList() != null) {
+				resultPane.listView.setItems(
+						FXCollections.observableArrayList(n.getResultList())
+					);
+			}
+		});
+		searchService.setCallback(() -> {
+			Search search = searchPane.table.getSelectionModel().getSelectedItem();
+			System.out.println(String.format("%s %s", search, search != null ? search.getResultList() : "getResultList"));
+        	if (search != null && search.getResultList() != null) {
+        		Platform.runLater(() -> resultPane.listView.setItems(
+        				FXCollections.observableArrayList(search.getResultList())
+					));
+			}
+		});
 	}
  
 
