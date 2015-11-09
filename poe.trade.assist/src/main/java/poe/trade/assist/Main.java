@@ -36,8 +36,10 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import poe.trade.assist.service.SearchService;
+import poe.trade.assist.util.Dialogs;
  
 public class Main extends Application {
     
@@ -76,7 +78,7 @@ public class Main extends Application {
         root.getChildren().addAll(container);
         Scene scene = new Scene(root);
         stage.getIcons().add(new Image("/assist.png"));
-        stage.setTitle("poe.trade.assist 0.2");
+        stage.setTitle("poe.trade.assist v3");
         stage.setWidth(1150);
         stage.setHeight(550);
         stage.setScene(scene);
@@ -131,13 +133,27 @@ public class Main extends Application {
 					);
 			}
 		});
-		searchService.setCallback(() -> {
+		searchService.setCallback(noOfItemsFound -> {
 			Search search = searchPane.table.getSelectionModel().getSelectedItem();
-			System.out.println(String.format("%s %s", search, search != null ? search.getResultList() : "getResultList"));
         	if (search != null && search.getResultList() != null) {
         		Platform.runLater(() -> resultPane.listView.setItems(
         				FXCollections.observableArrayList(search.getResultList())
 					));
+			}
+        	if (noOfItemsFound > 0) {
+        		String soundPath = resultPane.soundFileTextField.getText();
+        		File file = new File(soundPath);
+                if (file.exists()) {
+                	String url;
+					try {
+						url = file.toURI().toURL().toExternalForm();
+						AudioClip sound = new AudioClip(url);
+						sound.play();
+					} catch (Exception e) {
+						e.printStackTrace();
+						Dialogs.showError(e);
+					}
+				}
 			}
 		});
 	}

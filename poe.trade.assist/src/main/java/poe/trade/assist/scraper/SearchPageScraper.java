@@ -16,6 +16,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
+import poe.trade.assist.scraper.SearchPageScraper.SearchResultItem.Mod;
+
 /**
  *
  * @author thirdy
@@ -94,24 +96,27 @@ public class SearchPageScraper {
 			}
 
 			// ----- Mods ----- //
-//			Element itemMods = element.getElementsByClass("item-mods").get(0);
-//			if (itemMods.getElementsByClass("bullet-item").size() != 0) {
-//				Element bulletItem = itemMods.getElementsByClass("bullet-item").get(0);
-//				Elements ulMods = bulletItem.getElementsByTag("ul");
-//				if (ulMods.size() == 2) {
-//					// implicit mod
-//					Element implicitLi = ulMods.get(0).getElementsByTag("li").get(0);
-//					Mod impMod = new Mod(implicitLi.attr("data-name"), implicitLi.attr("data-value"));
-//					item.implicitMod = impMod;
-//				}
-//				int indexOfExplicitMods = ulMods.size() - 1;
-//				Elements modsLi = ulMods.get(indexOfExplicitMods).getElementsByTag("li");
-//				for (Element modLi : modsLi) {
-//					// explicit mods
-//					Mod mod = new Mod(modLi.attr("data-name"), modLi.attr("data-value"));
-//					item.explicitMods.add(mod);
-//				}
-//			}
+			Elements itemModsElements = element.getElementsByClass("item-mods");
+			if (itemModsElements != null && itemModsElements.size() > 0) {
+				Element itemMods = itemModsElements.get(0);
+				if (itemMods.getElementsByClass("bullet-item").size() != 0) {
+					Element bulletItem = itemMods.getElementsByClass("bullet-item").get(0);
+					Elements ulMods = bulletItem.getElementsByTag("ul");
+					if (ulMods.size() == 2) {
+						// implicit mod
+						Element implicitLi = ulMods.get(0).getElementsByTag("li").get(0);
+						Mod impMod = new Mod(implicitLi.attr("data-name"), implicitLi.attr("data-value"));
+						item.implicitMod = impMod;
+					}
+					int indexOfExplicitMods = ulMods.size() - 1;
+					Elements modsLi = ulMods.get(indexOfExplicitMods).getElementsByTag("li");
+					for (Element modLi : modsLi) {
+						// explicit mods
+						Mod mod = new Mod(modLi.attr("data-name"), modLi.attr("data-value"));
+						item.explicitMods.add(mod);
+					}
+				}
+			}
 			
 			// ----- Properties ----- //
 			// this is the third column data (the first col is the image, second is the mods, reqs)
@@ -223,7 +228,7 @@ public class SearchPageScraper {
 
 			@Override
 			public String toString() {
-				return "Mod [name=" + name + ", value=" + value + "]";
+				return System.lineSeparator() + "Mod [name=" + name + ", value=" + value + "]";
 			}
 
 			/*  Convert the ff into human readable form:
@@ -253,7 +258,6 @@ public class SearchPageScraper {
 
 		public String toStringObject() {
 			StringBuilder builder = new StringBuilder();
-			builder.append("SearchResultItem [");
 			builder.append(System.lineSeparator());
 			builder.append("id=");
 			builder.append(id);
@@ -348,7 +352,6 @@ public class SearchPageScraper {
 			builder.append("online=");
 			builder.append(online);
 			builder.append(System.lineSeparator());
-			builder.append("]");
 			return builder.toString();
 		}
 

@@ -26,7 +26,9 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -54,6 +56,8 @@ public class SearchPane extends VBox {
 	final Button addButton = new Button("Add");
 	final Button remButton = new Button("Rem");
 	TableView<Search> table = new TableView<>();
+	
+	Label info = new Label("poe.trade.assist is fan made tool and is not affiliated with Grinding Gear Games in any way. " + System.lineSeparator() + "This software 100% free and open source under GPLv2 license.");
 
 	public SearchPane(List<Search> searchList) {
 		data = new SimpleListProperty<>(
@@ -62,6 +66,11 @@ public class SearchPane extends VBox {
 		table.setEditable(true);
 		table.setItems(data);
 		table.setMaxWidth(500);
+		info.setWrapText(true);
+		
+		if (data.size() > 0) {
+			table.getSelectionModel().select(0);
+		}
 
 		setupColumns();
 		setupAddFields();
@@ -88,7 +97,7 @@ public class SearchPane extends VBox {
 
 		setSpacing(5);
 		setPadding(new Insets(10, 0, 0, 10));
-		getChildren().addAll(label, table, hb);
+		getChildren().addAll(label, table, hb, info);
 
 	}
 
@@ -130,7 +139,6 @@ public class SearchPane extends VBox {
                 @Override
                 public void handle(MouseEvent event) {
                     if (event.getClickCount() > 1) {
-                        System.out.println("double clicked!");
                         TableCell c = (TableCell) event.getSource();
                         if (!isEmpty()) {
                         	EditingCell.super.startEdit();
@@ -139,7 +147,6 @@ public class SearchPane extends VBox {
             				setGraphic(textField);
             				textField.selectAll();
             			}
-                        System.out.println("Cell text: " + c.getText());
                     }
                 }
             });

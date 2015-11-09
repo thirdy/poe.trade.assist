@@ -28,18 +28,18 @@ import java.net.URI;
  *
  */
 public class SwingUtil {
-	public static void openUrlViaBrowser(String url) throws BlackmarketException {
+	public static void openUrlViaBrowser(String url) {
 		String s = url;
 		if (Desktop.isDesktopSupported()) {
 			try {
 				Desktop.getDesktop().browse(new URI(s));
 			} catch (Exception e) {
-				throw new BlackmarketException(
+				Dialogs.showError(new BlackmarketException(
 						"Error on opening browser, address: " + s + ": " + e.getMessage(), e
-							);
+							));
 			}
 		} else {
-			throw new BlackmarketException("Launch browser failed, please manually visit: " + s);
+			Dialogs.showError(new BlackmarketException("Launch browser failed, please manually visit: " + s));
 		}
 	}
 	

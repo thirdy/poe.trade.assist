@@ -19,6 +19,9 @@ package poe.trade.assist.service;
 
 import static java.lang.String.format;
 
+import java.util.function.Consumer;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,13 +50,19 @@ public class SearchService extends Service<Void> {
     private BackendClient backendClient = new BackendClient();
 
     // Just a way to provide notifications when searches' elements has been updated
-	private Runnable callback;
+	private Consumer<Integer> callback;
     
     public SearchService() {
 		setOnSucceeded(e -> restart());
 		setOnFailed	 (e -> {
 			getException().printStackTrace();
 			Dialogs.showError(getException());
+			try {
+				Thread.sleep(5000);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+				return;
+			}
 			restart();
 		});
 	}
@@ -63,16 +72,23 @@ public class SearchService extends Service<Void> {
         return new Task<Void>() {  
         	
 			@Override protected Void call() throws Exception {
+				int numberOfItemsFound = 0;
             		for (Search search : searches) {
-            			update(format("Downloading... %s %s", search.getName(), search.getUrl()));
-            			String html = doDownload(search.getUrl());
-            			update(format("%s for %s %s", 
-            					html.isEmpty() ? "Failure" : "Success",
-            					search.getName(), search.getUrl()));
-            			search.setHtml(html);
-            			search.parseHtml();
+            			if (StringUtils.isNotBlank(search.getUrl())) {
+            				update(format("Downloading... %s %s", search.getName(), search.getUrl()));
+                			String html = doDownload(search.getUrl());
+                			update(format("%s for %s %s", 
+                					html.isEmpty() ? "Failure" : "Success",
+                					search.getName(), search.getUrl()));
+                			search.setHtml(html);
+                			search.parseHtml();
+                			if (search.getResultList() != null) { // i'm not sure if list will get null, the bane of java..
+                				numberOfItemsFound += search.getResultList().stream().filter(r -> r.getId() != null).count();
+    						}
+                			Thread.sleep(250); // a little delay between downloads
+						}
 					}
-            		callback.run();
+					callback.accept(numberOfItemsFound);
             		
             		String sleepMins = minsToSleep.get();
 					int mins = 60 * (NumberUtils.isParsable(sleepMins) ? Integer.parseInt(sleepMins) : 5);
@@ -105,7 +121,7 @@ public class SearchService extends Service<Void> {
 		return "";
 	}
 
-	public void setCallback(Runnable callback) {
+	public void setCallback(Consumer<Integer> callback) {
 		this.callback = callback;
 	}
 	
