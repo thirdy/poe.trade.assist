@@ -201,7 +201,7 @@ public class SearchPageScraper {
 		
 		public String getWTB() {
 			return String.format(
-					"@%s Hi, I would like to buy your %s listed for %s in %s",
+					"@%s Good day, I would like to buy your %s listed for %s in %s. Found your item using poe.trade.assist.",
 					getIgn(), getName(), getBuyout(), getLeague());
 		}
 

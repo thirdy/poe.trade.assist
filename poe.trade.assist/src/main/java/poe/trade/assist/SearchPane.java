@@ -55,7 +55,6 @@ public class SearchPane extends VBox {
 	final CheckBox addAuto = new CheckBox("Auto");
 	final Button addButton = new Button("Add");
 	final Button remButton = new Button("Rem");
-	final CheckBox autoSearchChckbx = new CheckBox("Auto");
 	TableView<Search> table = new TableView<>();
 	
 	Label info = new Label("poe.trade.assist is fan made tool and is not affiliated with Grinding Gear Games in any way. " + System.lineSeparator() + "This software 100% free and open source under GPLv2 license.");
@@ -75,7 +74,7 @@ public class SearchPane extends VBox {
 		setupTableClickListener();
 
 		addButton.setOnAction((ActionEvent e) -> {
-			data.add(new Search(addName.getText(), addURL.getText(), autoSearchChckbx.isSelected()));
+			data.add(new Search(addName.getText(), addURL.getText(), addAuto.isSelected()));
 			addName.clear();
 			addURL.clear();
 			addAuto.setSelected(false);
@@ -138,21 +137,21 @@ public class SearchPane extends VBox {
 //			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).name.set(t.getNewValue());
 //		});
 
-		urlCol.setMinWidth(230);
+		urlCol.setMinWidth(210);
 		urlCol.setCellValueFactory(new PropertyValueFactory<>("url"));
 //		urlCol.setCellFactory(cellTextFieldFactory);
 //		urlCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
 //			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).url.set(t.getNewValue());
 //		});
 		
-		autoSearchCol.setMinWidth(20);
+		autoSearchCol.setMinWidth(35);
 		autoSearchCol.setCellValueFactory(new PropertyValueFactory<>("autoSearch"));
 //		autoSearchCol.setCellFactory(cellCheckboxFactory);
 //		autoSearchCol.setOnEditCommit((CellEditEvent<Search, Boolean> t) -> {
 //			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).autoSearch.set(t.getNewValue());
 //		});
 		
-		resultCol.setMinWidth(20);
+		resultCol.setMinWidth(35);
 		resultCol.setCellValueFactory(new PropertyValueFactory<>("result"));
 
 		table.getColumns().addAll(nameCol, urlCol, autoSearchCol, resultCol);
