@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package poe.trade.assist;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -32,13 +35,19 @@ import com.google.gson.reflect.TypeToken;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.scene.Scene;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
-import poe.trade.assist.service.SearchService;
+import poe.trade.assist.Search.SearchPersist;
+import poe.trade.assist.scraper.SearchPageScraper.SearchResultItem;
+import poe.trade.assist.service.AutoSearchService;
 import poe.trade.assist.util.Dialogs;
  
 public class Main extends Application {
@@ -49,44 +58,56 @@ public class Main extends Application {
  
     @Override
     public void start(Stage stage) {
-    	StackPane root = new StackPane();
+//    	StackPane root = new StackPane();
+    	BorderPane root = new BorderPane();
     	
     	List<Search> searchList = loadSearchListFromFile();
  
-    	SearchService searchService = new SearchService();
+    	AutoSearchService autoSearchService = new AutoSearchService();
         SearchPane searchPane = new SearchPane(searchList);
         ResultPane resultPane = new ResultPane();
         
-        searchService.searchesProperty().bind(searchPane.dataProperty());
-        resultPane.statusLabel.textProperty().bind(searchService.messageProperty());
-        resultPane.runNowButton.setOnAction(e -> searchService.restart() );
-        searchService.minsToSleepProperty().bind(resultPane.noOfMinsTextField.textProperty());
-        setupResultPaneBinding(searchPane, resultPane, searchService);
+        autoSearchService.searchesProperty().bind(searchPane.dataProperty());
+        resultPane.statusLabel.textProperty().bind(autoSearchService.messageProperty());
+        resultPane.runNowButton.setOnAction(e -> autoSearchService.restart() );
+        autoSearchService.minsToSleepProperty().bind(resultPane.noOfMinsTextField.textProperty());
+        setupResultPaneBinding(searchPane, resultPane, autoSearchService);
+        if(searchList.size() > 0) searchPane.table.getSelectionModel().select(0);
         
-        stage.setOnCloseRequest(we -> {
-        	List<Search> list = new ArrayList<>(searchPane.table.getItems());
-			if (list != null) {
-				Gson gson = new Gson();
-	        	String json = gson.toJson(list);
-	        	saveSearchesToFile(json);
-			}
-        });
+        stage.setOnCloseRequest(we -> saveSearchList(searchPane));
         
-        searchService.restart();
+        autoSearchService.restart();
         
         HBox container = new HBox(5, searchPane, resultPane);
-        root.getChildren().addAll(container);
+        HBox.setHgrow(searchPane, Priority.ALWAYS);
+        HBox.setHgrow(resultPane, Priority.ALWAYS);
+        container.setMaxWidth(Double.MAX_VALUE);
+//        root.getChildren().addAll(container);
+        root.setCenter(container);
         Scene scene = new Scene(root);
         stage.getIcons().add(new Image("/assist.png"));
-        stage.setTitle("poe.trade.assist v3");
+        stage.setTitle("poe.trade.assist v4");
         stage.setWidth(1150);
         stage.setHeight(550);
         stage.setScene(scene);
         stage.show();
     }
 
+	private void saveSearchList(SearchPane searchPane) {
+		List<Search> list = new ArrayList<>(searchPane.table.getItems());
+		if (list != null) {
+			Gson gson = new Gson();
+			List<SearchPersist> persistList = list.stream().map(e -> e.toSearchPersist()).collect(toList());
+			String json = gson.toJson(persistList);
+			saveSearchesToFile(json);
+		}
+	}
+
 	private List<Search> loadSearchListFromFile() {
-		List<Search> list = Arrays.asList(new Search("Tabula 30c", "http://poe.trade/search/oremarohokinon"));
+		List<Search> list = Arrays.asList(
+				new Search("Lakishu's Blade 3L", "http://poe.trade/search/nokagatasasaha", false),
+				new Search("Tabula 30c", "http://poe.trade/search/oremarohokinon", true)
+		);
 		// 1ex aegis http://poe.trade/search/atamiomimetami
 		// kaom's heart http://poe.trade/search/kuwahamigaruri
 		
@@ -95,11 +116,13 @@ public class Main extends Application {
 			String json = FileUtils.readFileToString(file);
 			if (StringUtils.isNotBlank(json)) {
 				Gson gson = new Gson();
-				Type listType = new TypeToken<ArrayList<Search>>() { }.getType();
-				list = gson.fromJson(json, listType);
+				Type listType = new TypeToken<ArrayList<SearchPersist>>() { }.getType();
+				List<SearchPersist> persistList = gson.fromJson(json, listType);
+				list = persistList.stream().map(e -> e.toSearch()).collect(toList());
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			Dialogs.showError(e);
 		}
 		return list;
 	}
@@ -125,17 +148,21 @@ public class Main extends Application {
 		return file;
 	}
 
-	private void setupResultPaneBinding(SearchPane searchPane, ResultPane resultPane, SearchService searchService) {
+	private void setupResultPaneBinding(SearchPane searchPane, ResultPane resultPane, AutoSearchService autoSearchService) {
 		searchPane.table.getSelectionModel().selectedItemProperty().addListener((ob, o, n) -> {
-			if (n != null && n.getResultList() != null) {
-				resultPane.listView.setItems(
-						FXCollections.observableArrayList(n.getResultList())
-					);
+			if (n != null) {
+				List<SearchResultItem> list = n.getResultList();
+				if (n.getAutoSearch() && list != null) {
+					resultPane.listView.setItems(FXCollections.observableArrayList(list));
+				} else if(!n.getAutoSearch()) {
+					manualTaskRun(searchPane, resultPane, n);
+				}
 			}
 		});
-		searchService.setCallback(noOfItemsFound -> {
+		autoSearchService.setCallback(noOfItemsFound -> {
+			refreshResultColumn(searchPane);
 			Search search = searchPane.table.getSelectionModel().getSelectedItem();
-        	if (search != null && search.getResultList() != null) {
+        	if (search != null && search.getResultList() != null && search.getAutoSearch()) {
         		Platform.runLater(() -> resultPane.listView.setItems(
         				FXCollections.observableArrayList(search.getResultList())
 					));
@@ -156,6 +183,41 @@ public class Main extends Application {
 				}
 			}
 		});
+	}
+
+	private void refreshResultColumn(SearchPane searchPane) {
+		// workaround http://stackoverflow.com/questions/11065140/javafx-2-1-tableview-refresh-items
+		// yeah java sucks on some parts
+		Platform.runLater(() -> {
+			searchPane.getResultColumn().setVisible(false);
+			searchPane.getResultColumn().setVisible(true);
+		});
+	}
+
+	private void manualTaskRun(SearchPane searchPane, ResultPane resultPane, Search search) {
+		String url = search.getUrl();
+		if (isNotBlank(url)) {
+			Task<List<SearchResultItem>> task = new Task<List<SearchResultItem>>() {
+				@Override
+				protected List<SearchResultItem> call() throws Exception {
+					String html = AutoSearchService.doDownload(search.getUrl());
+					search.setHtml(html);
+					search.parseHtml();
+					return search.getResultList();
+				}
+			};
+			resultPane.progressIndicator.visibleProperty().unbind();
+			resultPane.progressIndicator.visibleProperty().bind(task.runningProperty());
+			task.setOnSucceeded(e -> { 
+				resultPane.listView.setItems(FXCollections.observableArrayList(task.getValue()));
+				refreshResultColumn(searchPane);
+				});
+			task.setOnFailed(e -> {
+				Dialogs.showError(task.getException());
+				refreshResultColumn(searchPane);
+				});
+			new Thread(task).start();
+		}
 	}
  
 

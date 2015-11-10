@@ -19,17 +19,20 @@ package poe.trade.assist;
 
 import java.io.File;
 
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -49,9 +52,11 @@ public class ResultPane extends VBox {
 	TextField noOfMinsTextField = new TextField();
 	TextField soundFileTextField = new TextField();
 	Hyperlink website = new Hyperlink("http://thirdy.github.io/poe.trade.assist/");
+	ProgressIndicator progressIndicator = new ProgressIndicator(-1.0f);
 	
 	public ResultPane() {
-		listView.setMinWidth(600);
+//		listView.setMinWidth(600);
+		listView.setMaxWidth(Double.MAX_VALUE);
 		noOfMinsTextField.setPromptText("Minutes to sleep");
 		noOfMinsTextField.setPrefWidth(120);
 		soundFileTextField.setPromptText("Path to sound file, can be mp3, acc, wav");
@@ -60,6 +65,10 @@ public class ResultPane extends VBox {
 		soundFileTextField.setText(new File("notification.wav").getAbsolutePath());
 		setupTooltip();
 		setupSelectionListener();
+		Region veilOfTheNight = new Region();
+		veilOfTheNight.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3)");
+		progressIndicator.setVisible(false);
+		veilOfTheNight.visibleProperty().bind(progressIndicator.visibleProperty());
 		
 		website.setOnAction(e -> SwingUtil.openUrlViaBrowser(website.getText()));
 		listView.setOnMouseClicked(this::listViewClicked);
@@ -70,8 +79,13 @@ public class ResultPane extends VBox {
 		setPadding(new Insets(10, 0, 0, 10));
 		HBox hBox = new HBox(3, runNowButton, noOfMinsTextField, soundFileTextField);
 		hBox.setAlignment(Pos.CENTER_LEFT);
-		getChildren().addAll(label, listView, hBox, new VBox(new TextFlow(new Label("Status: "), statusLabel), 
+		StackPane stackPane = new StackPane(listView, veilOfTheNight, progressIndicator);
+		stackPane.setMaxWidth(Double.MAX_VALUE);
+		getChildren().addAll(label, stackPane, hBox, new VBox(new TextFlow(new Label("Status: "), statusLabel), 
 				new TextFlow(new Text("Check for the latest updates at: "), website)));
+		setMaxWidth(Double.MAX_VALUE);
+		setMargin(stackPane, new Insets(0, 11, 0, 0));
+		VBox.setVgrow(stackPane, Priority.ALWAYS);
 	}
 
 	private void listViewClicked(MouseEvent me) {

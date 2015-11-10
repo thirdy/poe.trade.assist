@@ -21,27 +21,24 @@ import java.util.List;
 
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.util.Callback;
+import poe.trade.assist.util.SwingUtil;
 
 public class SearchPane extends VBox {
 
@@ -50,11 +47,15 @@ public class SearchPane extends VBox {
 
 	TableColumn<Search, String> nameCol = new TableColumn<>("Name");
 	TableColumn<Search, String> urlCol = new TableColumn<>("URL");
+	TableColumn<Search, Boolean> autoSearchCol = new TableColumn<>("Auto");
+	TableColumn<Search, Integer> resultCol = new TableColumn<>("Result");
 
 	final TextField addName = new TextField();
 	final TextField addURL = new TextField();
+	final CheckBox addAuto = new CheckBox("Auto");
 	final Button addButton = new Button("Add");
 	final Button remButton = new Button("Rem");
+	final CheckBox autoSearchChckbx = new CheckBox("Auto");
 	TableView<Search> table = new TableView<>();
 	
 	Label info = new Label("poe.trade.assist is fan made tool and is not affiliated with Grinding Gear Games in any way. " + System.lineSeparator() + "This software 100% free and open source under GPLv2 license.");
@@ -63,22 +64,21 @@ public class SearchPane extends VBox {
 		data = new SimpleListProperty<>(
 				FXCollections.observableArrayList(searchList));
 		
-		table.setEditable(true);
+		table.setEditable(false);
 		table.setItems(data);
-		table.setMaxWidth(500);
+		table.setPrefWidth(500);
+		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		info.setWrapText(true);
-		
-		if (data.size() > 0) {
-			table.getSelectionModel().select(0);
-		}
 
 		setupColumns();
 		setupAddFields();
+		setupTableClickListener();
 
 		addButton.setOnAction((ActionEvent e) -> {
-			data.add(new Search(addName.getText(), addURL.getText()));
+			data.add(new Search(addName.getText(), addURL.getText(), autoSearchChckbx.isSelected()));
 			addName.clear();
 			addURL.clear();
+			addAuto.setSelected(false);
 		});
 		
 		remButton.setOnAction((ActionEvent e) -> {
@@ -89,7 +89,8 @@ public class SearchPane extends VBox {
 		});
 
 		final HBox hb = new HBox();
-		hb.getChildren().addAll(addName, addURL, addButton, remButton);
+		HBox.setHgrow(addName, Priority.ALWAYS);
+		hb.getChildren().addAll(addName, addURL, addAuto, addButton, remButton);
 		hb.setSpacing(3);
 
 		final Label label = new Label("Search List");
@@ -98,107 +99,66 @@ public class SearchPane extends VBox {
 		setSpacing(5);
 		setPadding(new Insets(10, 0, 0, 10));
 		getChildren().addAll(label, table, hb, info);
+		VBox.setVgrow(table, Priority.ALWAYS);
+		setMaxWidth(Double.MAX_VALUE);
+	}
 
+	private void setupTableClickListener() {
+		table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() > 1) {
+                    Search search = table.getSelectionModel().getSelectedItem();
+                    if (search != null) {
+						SwingUtil.openUrlViaBrowser(search.getUrl());
+					}
+                }
+            }
+        });
 	}
 
 	private void setupAddFields() {
 		addName.setPromptText("Name");
-		addName.setMinWidth(100);
+//		addName.setMinWidth(100);
 		addURL.setPromptText("URL");
-		addURL.setMinWidth(250);
+		addURL.setMinWidth(200);
 	}
 
 	@SuppressWarnings("unchecked")
 	private void setupColumns() {
-		Callback<TableColumn<Search, String>, TableCell<Search, String>> cellFactory = (
-				TableColumn<Search, String> p) -> new EditingCell();
+//		Callback<TableColumn<Search, String>, TableCell<Search, String>> cellTextFieldFactory = (
+//				TableColumn<Search, String> p) -> new EditingTextFieldCell();
+//		Callback<TableColumn<Search, Boolean>, TableCell<Search, Boolean>> cellCheckboxFactory = (
+//						TableColumn<Search, Boolean> p) -> new EditingCheckboxCell();
 
-		nameCol.setMinWidth(190);
+		nameCol.setMinWidth(180);
 		nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-		nameCol.setCellFactory(cellFactory);
-		nameCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
-			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).name.set(t.getNewValue());
-		});
+//		nameCol.setCellFactory(cellTextFieldFactory);
+//		nameCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
+//			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).name.set(t.getNewValue());
+//		});
 
-		urlCol.setMinWidth(300);
+		urlCol.setMinWidth(230);
 		urlCol.setCellValueFactory(new PropertyValueFactory<>("url"));
-		urlCol.setCellFactory(cellFactory);
-		urlCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
-			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).url.set(t.getNewValue());
-		});
+//		urlCol.setCellFactory(cellTextFieldFactory);
+//		urlCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
+//			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).url.set(t.getNewValue());
+//		});
+		
+		autoSearchCol.setMinWidth(20);
+		autoSearchCol.setCellValueFactory(new PropertyValueFactory<>("autoSearch"));
+//		autoSearchCol.setCellFactory(cellCheckboxFactory);
+//		autoSearchCol.setOnEditCommit((CellEditEvent<Search, Boolean> t) -> {
+//			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).autoSearch.set(t.getNewValue());
+//		});
+		
+		resultCol.setMinWidth(20);
+		resultCol.setCellValueFactory(new PropertyValueFactory<>("result"));
 
-		table.getColumns().addAll(nameCol, urlCol);
+		table.getColumns().addAll(nameCol, urlCol, autoSearchCol, resultCol);
 	}
 
-	private static class EditingCell extends TableCell<Search, String> {
-
-		private TextField textField;
-
-		public EditingCell() {
-			addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    if (event.getClickCount() > 1) {
-                        TableCell c = (TableCell) event.getSource();
-                        if (!isEmpty()) {
-                        	EditingCell.super.startEdit();
-            				createTextField();
-            				setText(null);
-            				setGraphic(textField);
-            				textField.selectAll();
-            			}
-                    }
-                }
-            });
-		}
-
-		@Override
-		public void startEdit() {
-			
-		}
-
-		@Override
-		public void cancelEdit() {
-			super.cancelEdit();
-
-			setText((String) getItem());
-			setGraphic(null);
-		}
-
-		@Override
-		public void updateItem(String item, boolean empty) {
-			super.updateItem(item, empty);
-
-			if (empty) {
-				setText(null);
-				setGraphic(null);
-			} else {
-				if (isEditing()) {
-					if (textField != null) {
-						textField.setText(getString());
-					}
-					setText(null);
-					setGraphic(textField);
-				} else {
-					setText(getString());
-					setGraphic(null);
-				}
-			}
-		}
-
-		private void createTextField() {
-			textField = new TextField(getString());
-			textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-			textField.focusedProperty()
-					.addListener((ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) -> {
-						if (!arg2) {
-							commitEdit(textField.getText());
-						}
-					});
-		}
-
-		private String getString() {
-			return getItem() == null ? "" : getItem().toString();
-		}
+	public TableColumn getResultColumn() {
+		return resultCol;
 	}
 }

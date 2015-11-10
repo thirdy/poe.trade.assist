@@ -20,18 +20,25 @@ package poe.trade.assist;
 import java.util.Arrays;
 import java.util.List;
 
+import org.controlsfx.control.PropertySheet.Item;
+
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import poe.trade.assist.scraper.SearchPageScraper;
 import poe.trade.assist.scraper.SearchPageScraper.SearchResultItem;
 
 public class Search {
 
-    public Search(String name, String url) {
+    public Search(String name, String url, Boolean autoSearch) {
     	this.name.set(name);
     	this.url.set(url);
+    	this.autoSearch.set(autoSearch);
 	}
 	SimpleStringProperty name = new SimpleStringProperty();
 	SimpleStringProperty url = new SimpleStringProperty();
+	SimpleBooleanProperty autoSearch = new SimpleBooleanProperty();
+	SimpleIntegerProperty result = new SimpleIntegerProperty();
     
 	public String getName() {
 		return name.get();
@@ -45,9 +52,21 @@ public class Search {
 	public void setUrl(String url) {
 		this.url.set(url);
 	}
+	public Boolean getAutoSearch() {
+		return autoSearch.get();
+	}
+	public void setAutoSearch(Boolean autoSearch) {
+		this.autoSearch.set(autoSearch);
+	}
+	public Integer getResult() {
+		return result.get();
+	}
+	public void setResult(Integer result) {
+		this.result.set(result);
+	}
 	
-	private transient String html;
-	private transient List<SearchResultItem> resultList = Arrays.asList(SearchResultItem.message("Waiting for autodownload..."));
+	private String html;
+	private List<SearchResultItem> resultList = Arrays.asList(SearchResultItem.message("Waiting for autodownload..."));
 	
 	public String getHtml() {
 		return html;
@@ -61,16 +80,34 @@ public class Search {
 			SearchPageScraper searchPageScraper = new SearchPageScraper(html);
 			List<SearchResultItem> items = searchPageScraper.parse();
 			resultList = items;
+			setResult(items.size());
 		} catch (Exception e) {
 			e.printStackTrace();
 			resultList = Arrays.asList(SearchResultItem.message("Error in parsing: " + e.getMessage()));
+			setResult(-1);
 		}
 	}
-    
 
 	public List<SearchResultItem> getResultList() {
 		return resultList;
 	}
 	
-
+	public static class SearchPersist {
+		String name;
+		String url;
+		Boolean autoSearch;
+		
+		public Search toSearch() {
+			Search search = new Search(name, url, autoSearch);
+			return search;
+		}
+	}
+	
+	public SearchPersist toSearchPersist() {
+		SearchPersist persist = new SearchPersist();
+		persist.name = getName();
+		persist.url  = getUrl();
+		persist.autoSearch = getAutoSearch();
+		return persist;
+	}
 }

@@ -18,10 +18,10 @@
 package poe.trade.assist.service;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ import poe.trade.assist.Search;
 import poe.trade.assist.scraper.BackendClient;
 import poe.trade.assist.util.Dialogs;
 
-public class SearchService extends Service<Void> {
+public class AutoSearchService extends Service<Void> {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
@@ -47,12 +47,12 @@ public class SearchService extends Service<Void> {
     private StringProperty minsToSleep = new SimpleStringProperty();
     public StringProperty minsToSleepProperty() {return minsToSleep;}
     
-    private BackendClient backendClient = new BackendClient();
+    private static final BackendClient backendClient = new BackendClient();
 
     // Just a way to provide notifications when searches' elements has been updated
 	private Consumer<Integer> callback;
     
-    public SearchService() {
+    public AutoSearchService() {
 		setOnSucceeded(e -> restart());
 		setOnFailed	 (e -> {
 			getException().printStackTrace();
@@ -74,12 +74,13 @@ public class SearchService extends Service<Void> {
 			@Override protected Void call() throws Exception {
 				int numberOfItemsFound = 0;
             		for (Search search : searches) {
-            			if (StringUtils.isNotBlank(search.getUrl())) {
-            				update(format("Downloading... %s %s", search.getName(), search.getUrl()));
-                			String html = doDownload(search.getUrl());
+            			String url = search.getUrl();
+						if (isNotBlank(url) && search.getAutoSearch()) {
+            				update(format("Downloading... %s %s", search.getName(), url));
+                			String html = doDownload(url);
                 			update(format("%s for %s %s", 
                 					html.isEmpty() ? "Failure" : "Success",
-                					search.getName(), search.getUrl()));
+                					search.getName(), url));
                 			search.setHtml(html);
                 			search.parseHtml();
                 			if (search.getResultList() != null) { // i'm not sure if list will get null, the bane of java..
@@ -106,7 +107,7 @@ public class SearchService extends Service<Void> {
         };
 	}
 
-	private String doDownload(String url) {
+	public static String doDownload(String url) {
 		int count = 0;
 		int maxTries = 3;
 		while(true) {
