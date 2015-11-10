@@ -162,7 +162,7 @@
 								<jarLocation>lib/jars</jarLocation>
 							</classPath>
 							<dontWrapJar>true</dontWrapJar>
-							<icon>logos/assist.ico</icon>
+							<icon>logos/48px-Durian.ico</icon>
 							<jre>
 								<path>jre1.8.0_60</path>
 								<bundledJreAsFallback>true</bundledJreAsFallback>

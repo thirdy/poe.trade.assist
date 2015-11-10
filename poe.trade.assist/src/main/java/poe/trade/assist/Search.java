@@ -38,7 +38,7 @@ public class Search {
 	SimpleStringProperty name = new SimpleStringProperty();
 	SimpleStringProperty url = new SimpleStringProperty();
 	SimpleBooleanProperty autoSearch = new SimpleBooleanProperty();
-	SimpleIntegerProperty result = new SimpleIntegerProperty();
+	SimpleStringProperty result = new SimpleStringProperty();
     
 	public String getName() {
 		return name.get();
@@ -58,10 +58,10 @@ public class Search {
 	public void setAutoSearch(Boolean autoSearch) {
 		this.autoSearch.set(autoSearch);
 	}
-	public Integer getResult() {
+	public String getResult() {
 		return result.get();
 	}
-	public void setResult(Integer result) {
+	public void setResult(String result) {
 		this.result.set(result);
 	}
 	
@@ -79,12 +79,13 @@ public class Search {
 		try {
 			SearchPageScraper searchPageScraper = new SearchPageScraper(html);
 			List<SearchResultItem> items = searchPageScraper.parse();
+			long oldCount = resultList.stream().filter(r -> r.getId() != null).count();
+			setResult(String.format("%d %s", items.size(), oldCount > 0 ? "(" + oldCount + ")" : ""));
 			resultList = items;
-			setResult(items.size());
 		} catch (Exception e) {
 			e.printStackTrace();
 			resultList = Arrays.asList(SearchResultItem.message("Error in parsing: " + e.getMessage()));
-			setResult(-1);
+			setResult("Error");
 		}
 	}
 

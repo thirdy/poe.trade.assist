@@ -112,7 +112,7 @@ public class AutoSearchService extends Service<Void> {
 		int maxTries = 3;
 		while(true) {
 		    try {
-		    	return backendClient.get(url);
+		    	return backendClient.postXMLHttpRequest(url, "sort=price_in_chaos&bare=true");
 		    } catch (Exception e) {
 		    	e.printStackTrace();
 		        if (++count == maxTries) break;

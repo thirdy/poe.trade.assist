@@ -118,7 +118,7 @@ public class BackendClient {
 //	 System.out.println(result.toString());
     }
     
-    private String postXMLHttpRequest(String url, String payload)
+    public String postXMLHttpRequest(String url, String payload)
     		throws Exception {
     	System.out.println("postXMLHttpRequest() payload: " + payload);
     	System.out.println("postXMLHttpRequest() url: " + url);

@@ -48,7 +48,7 @@ public class SearchPane extends VBox {
 	TableColumn<Search, String> nameCol = new TableColumn<>("Name");
 	TableColumn<Search, String> urlCol = new TableColumn<>("URL");
 	TableColumn<Search, Boolean> autoSearchCol = new TableColumn<>("Auto");
-	TableColumn<Search, Integer> resultCol = new TableColumn<>("Result");
+	TableColumn<Search, String> resultCol = new TableColumn<>("Result");
 
 	final TextField addName = new TextField();
 	final TextField addURL = new TextField();

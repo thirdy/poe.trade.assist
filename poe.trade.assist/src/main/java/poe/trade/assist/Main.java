@@ -85,7 +85,7 @@ public class Main extends Application {
 //        root.getChildren().addAll(container);
         root.setCenter(container);
         Scene scene = new Scene(root);
-        stage.getIcons().add(new Image("/assist.png"));
+        stage.getIcons().add(new Image("/48px-Durian.png"));
         stage.setTitle("poe.trade.assist v4");
         stage.setWidth(1200);
         stage.setHeight(550);
