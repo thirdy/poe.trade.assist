@@ -19,6 +19,7 @@ package poe.trade.assist;
 
 import java.io.File;
 
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -26,8 +27,11 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -46,7 +50,9 @@ import poe.trade.assist.util.SwingUtil;
 
 public class ResultPane extends VBox {
 	
-	ListView<SearchResultItem> listView = new ListView<SearchResultItem>();
+	ListView<SearchResultItem> quickListView = new ListView<SearchResultItem>();
+	SearchForm searchForm = new SearchForm("Search Form");
+	SearchView searchView = new SearchView();
 	Label statusLabel = new Label("Ready");
 	Button runNowButton = new Button("Run now");
 	TextField noOfMinsTextField = new TextField();
@@ -55,8 +61,7 @@ public class ResultPane extends VBox {
 	ProgressIndicator progressIndicator = new ProgressIndicator(-1.0f);
 	
 	public ResultPane() {
-//		listView.setMinWidth(600);
-		listView.setMaxWidth(Double.MAX_VALUE);
+		quickListView.setMaxWidth(Double.MAX_VALUE);
 		noOfMinsTextField.setPromptText("Minutes to sleep");
 		noOfMinsTextField.setPrefWidth(120);
 		soundFileTextField.setPromptText("Path to sound file, can be mp3, acc, wav");
@@ -71,7 +76,7 @@ public class ResultPane extends VBox {
 		veilOfTheNight.visibleProperty().bind(progressIndicator.visibleProperty());
 		
 		website.setOnAction(e -> SwingUtil.openUrlViaBrowser(website.getText()));
-		listView.setOnMouseClicked(this::listViewClicked);
+		quickListView.setOnMouseClicked(this::listViewClicked);
 		
 		final Label label = new Label("Results");
 		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -79,7 +84,11 @@ public class ResultPane extends VBox {
 		setPadding(new Insets(10, 0, 0, 10));
 		HBox hBox = new HBox(3, runNowButton, noOfMinsTextField, soundFileTextField);
 		hBox.setAlignment(Pos.CENTER_LEFT);
-		StackPane stackPane = new StackPane(listView, veilOfTheNight, progressIndicator);
+		TabPane tabPane = new TabPane(new Tab("Compact", quickListView),
+				searchForm,
+				new Tab("Results", searchView));
+		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+		StackPane stackPane = new StackPane(tabPane, veilOfTheNight, progressIndicator);
 		stackPane.setMaxWidth(Double.MAX_VALUE);
 		getChildren().addAll(label, stackPane, hBox, new VBox(new TextFlow(new Label("Status: "), statusLabel), 
 				new TextFlow(new Text("Check for the latest updates at: "), website)));
@@ -89,7 +98,7 @@ public class ResultPane extends VBox {
 	}
 
 	private void listViewClicked(MouseEvent me) {
-		SearchResultItem item = listView.getSelectionModel().getSelectedItem();
+		SearchResultItem item = quickListView.getSelectionModel().getSelectedItem();
 		if (me.getClickCount() > 1 && item != null) {
 			SearchResultItemDialog.show(item);
 		}
@@ -108,7 +117,7 @@ public class ResultPane extends VBox {
 	}
 
 	private void setupSelectionListener() {
-		listView.getSelectionModel().selectedItemProperty().addListener((obrv, oldVal, newVal) -> {
+		quickListView.getSelectionModel().selectedItemProperty().addListener((obrv, oldVal, newVal) -> {
 			if (newVal != null) {
 				SwingUtil.copyToClipboard(newVal.toString());
 			}
@@ -117,15 +126,22 @@ public class ResultPane extends VBox {
 
 	private void setupTooltip() {
 		Tooltip tooltip = new Tooltip();
-		listView.getSelectionModel().selectedItemProperty().addListener((ob, o, n) -> {
+		quickListView.getSelectionModel().selectedItemProperty().addListener((ob, o, n) -> {
 			if (n != null) {
-				SearchResultItem item = listView.getSelectionModel().getSelectedItem();
+				SearchResultItem item = quickListView.getSelectionModel().getSelectedItem();
 				String msg = item != null ? item.toStringObject() : "";
 				tooltip.setText(msg);
-				listView.setTooltip(tooltip);
+				quickListView.setTooltip(tooltip);
 			} else {
-				listView.setTooltip(null);
+				quickListView.setTooltip(null);
 			}
 		});
+	}
+
+	public void setSearch(Search search) {
+		searchForm.searchProperty().set(search);
+		searchView.searchProperty().set(search);
+		quickListView.setItems(FXCollections.observableArrayList(search.getResultList()));
+		
 	}
 }

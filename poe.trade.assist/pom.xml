@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.thirdy</groupId>
-	<version>0.4</version>
+	<version>0.5</version>
 	<artifactId>poe.trade.assist</artifactId>
 
 	<packaging>jar</packaging>
@@ -12,7 +12,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<poe.trade.assist.version>0.4</poe.trade.assist.version>
+		<poe.trade.assist.version>0.5</poe.trade.assist.version>
 		<mainClass>poe.trade.assist.Main</mainClass>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>

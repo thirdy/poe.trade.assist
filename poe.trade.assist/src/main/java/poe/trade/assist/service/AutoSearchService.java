@@ -20,8 +20,11 @@ package poe.trade.assist.service;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.io.File;
+import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +81,7 @@ public class AutoSearchService extends Service<Void> {
 						if (isNotBlank(url) && search.getAutoSearch()) {
             				update(format("Downloading... %s %s", search.getName(), url));
                 			String html = doDownload(url);
+//                			FileUtils.writeStringToFile(new File(search.getName()), html);
                 			update(format("%s for %s %s", 
                 					html.isEmpty() ? "Failure" : "Success",
                 					search.getName(), url));

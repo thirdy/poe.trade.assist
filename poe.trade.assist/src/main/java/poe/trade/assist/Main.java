@@ -34,15 +34,12 @@ import com.google.gson.reflect.TypeToken;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import poe.trade.assist.Search.SearchPersist;
@@ -58,7 +55,6 @@ public class Main extends Application {
  
     @Override
     public void start(Stage stage) {
-//    	StackPane root = new StackPane();
     	BorderPane root = new BorderPane();
     	
     	List<Search> searchList = loadSearchListFromFile();
@@ -86,7 +82,7 @@ public class Main extends Application {
         root.setCenter(container);
         Scene scene = new Scene(root);
         stage.getIcons().add(new Image("/48px-Durian.png"));
-        stage.setTitle("poe.trade.assist v4");
+        stage.setTitle("poe.trade.assist v5 (Durian)");
         stage.setWidth(1200);
         stage.setHeight(550);
         stage.setScene(scene);
@@ -153,7 +149,7 @@ public class Main extends Application {
 			if (n != null) {
 				List<SearchResultItem> list = n.getResultList();
 				if (n.getAutoSearch() && list != null) {
-					resultPane.listView.setItems(FXCollections.observableArrayList(list));
+					resultPane.setSearch(n);
 				} else if(!n.getAutoSearch()) {
 					manualTaskRun(searchPane, resultPane, n);
 				}
@@ -163,9 +159,7 @@ public class Main extends Application {
 			refreshResultColumn(searchPane);
 			Search search = searchPane.table.getSelectionModel().getSelectedItem();
         	if (search != null && search.getResultList() != null && search.getAutoSearch()) {
-        		Platform.runLater(() -> resultPane.listView.setItems(
-        				FXCollections.observableArrayList(search.getResultList())
-					));
+        		Platform.runLater(() -> resultPane.setSearch(search));
 			}
         	if (noOfItemsFound > 0) {
         		String soundPath = resultPane.soundFileTextField.getText();
@@ -197,19 +191,19 @@ public class Main extends Application {
 	private void manualTaskRun(SearchPane searchPane, ResultPane resultPane, Search search) {
 		String url = search.getUrl();
 		if (isNotBlank(url)) {
-			Task<List<SearchResultItem>> task = new Task<List<SearchResultItem>>() {
+			Task<Search> task = new Task<Search>() {
 				@Override
-				protected List<SearchResultItem> call() throws Exception {
+				protected Search call() throws Exception {
 					String html = AutoSearchService.doDownload(search.getUrl());
 					search.setHtml(html);
 					search.parseHtml();
-					return search.getResultList();
+					return search;
 				}
 			};
 			resultPane.progressIndicator.visibleProperty().unbind();
 			resultPane.progressIndicator.visibleProperty().bind(task.runningProperty());
 			task.setOnSucceeded(e -> { 
-				resultPane.listView.setItems(FXCollections.observableArrayList(task.getValue()));
+				resultPane.setSearch(task.getValue());
 				refreshResultColumn(searchPane);
 				});
 			task.setOnFailed(e -> {
@@ -217,6 +211,8 @@ public class Main extends Application {
 				refreshResultColumn(searchPane);
 				});
 			new Thread(task).start();
+		} else {
+			resultPane.setSearch(search);
 		}
 	}
  
