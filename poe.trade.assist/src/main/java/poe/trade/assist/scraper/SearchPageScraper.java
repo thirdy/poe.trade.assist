@@ -200,8 +200,12 @@ public class SearchPageScraper {
 		}
 		
 		public String getWTB() {
+			String wtbformat = System.getenv("poe.trade.assist.wtb");
+			if (StringUtils.isNotBlank(wtbformat)) {
+				return String.format(wtbformat, getIgn(), getName(), getBuyout(), getLeague());
+			}
 			return String.format(
-					"@%s Good day, I would like to buy your %s listed for %s in %s. Found your item using poe.trade.assist.",
+					"@%s Hi, I would like to buy your %s listed for %s in %s.",
 					getIgn(), getName(), getBuyout(), getLeague());
 		}
 
