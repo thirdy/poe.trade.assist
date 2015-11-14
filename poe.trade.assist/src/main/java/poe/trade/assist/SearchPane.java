@@ -27,6 +27,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -38,6 +39,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import poe.trade.assist.util.SwingUtil;
 
 public class SearchPane extends VBox {
@@ -56,13 +59,13 @@ public class SearchPane extends VBox {
 	final Button addButton = new Button("Add");
 	final Button remButton = new Button("Rem");
 	TableView<Search> table = new TableView<>();
-	
+	Hyperlink website = new Hyperlink("http://thirdy.github.io/poe.trade.assist/");
 	Label info = new Label("poe.trade.assist is fan made tool and is not affiliated with Grinding Gear Games in any way. " + System.lineSeparator() + "This software 100% free and open source under GPLv2 license.");
 
 	public SearchPane(List<Search> searchList) {
 		data = new SimpleListProperty<>(
 				FXCollections.observableArrayList(searchList));
-		
+		website.setOnAction(e -> SwingUtil.openUrlViaBrowser(website.getText()));
 		table.setEditable(false);
 		table.setItems(data);
 		table.setPrefWidth(500);
@@ -74,7 +77,7 @@ public class SearchPane extends VBox {
 		setupTableClickListener();
 
 		addButton.setOnAction((ActionEvent e) -> {
-			data.add(new Search(addName.getText(), addURL.getText(), addAuto.isSelected()));
+			data.add(new Search(addName.getText(), addURL.getText(), addAuto.isSelected(), "price_in_chaos"));
 			addName.clear();
 			addURL.clear();
 			addAuto.setSelected(false);
@@ -87,17 +90,20 @@ public class SearchPane extends VBox {
 			}
 		});
 
-		final HBox hb = new HBox();
+		final HBox hb = new HBox(3);
 		HBox.setHgrow(addName, Priority.ALWAYS);
-		hb.getChildren().addAll(addName, addURL, addAuto, addButton, remButton);
-		hb.setSpacing(3);
+		hb.getChildren().addAll(addAuto, addButton, remButton);
+		
+		final VBox vb = new VBox(3, addName, addURL, hb);
 
 		final Label label = new Label("Search List");
 		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
 		setSpacing(5);
 		setPadding(new Insets(10, 0, 0, 10));
-		getChildren().addAll(label, table, hb, info);
+		getChildren().addAll(label, table, vb, info,
+				new TextFlow(new Text("Check for the latest updates at: "), website)
+				);
 		VBox.setVgrow(table, Priority.ALWAYS);
 		setMaxWidth(Double.MAX_VALUE);
 	}
@@ -130,31 +136,31 @@ public class SearchPane extends VBox {
 //		Callback<TableColumn<Search, Boolean>, TableCell<Search, Boolean>> cellCheckboxFactory = (
 //						TableColumn<Search, Boolean> p) -> new EditingCheckboxCell();
 
-		nameCol.setMinWidth(180);
+		nameCol.setMinWidth(150);
 		nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 //		nameCol.setCellFactory(cellTextFieldFactory);
 //		nameCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
 //			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).name.set(t.getNewValue());
 //		});
 
-		urlCol.setMinWidth(210);
+		urlCol.setMinWidth(200);
 		urlCol.setCellValueFactory(new PropertyValueFactory<>("url"));
 //		urlCol.setCellFactory(cellTextFieldFactory);
 //		urlCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
 //			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).url.set(t.getNewValue());
 //		});
 		
-		autoSearchCol.setMinWidth(35);
+		autoSearchCol.setMinWidth(40);
 		autoSearchCol.setCellValueFactory(new PropertyValueFactory<>("autoSearch"));
 //		autoSearchCol.setCellFactory(cellCheckboxFactory);
 //		autoSearchCol.setOnEditCommit((CellEditEvent<Search, Boolean> t) -> {
 //			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).autoSearch.set(t.getNewValue());
 //		});
 		
-		resultCol.setMinWidth(35);
+		resultCol.setMinWidth(40);
 		resultCol.setCellValueFactory(new PropertyValueFactory<>("result"));
 
-		table.getColumns().addAll(nameCol, urlCol, autoSearchCol, resultCol);
+		table.getColumns().addAll(nameCol, autoSearchCol, resultCol, urlCol);
 	}
 
 	public TableColumn getResultColumn() {

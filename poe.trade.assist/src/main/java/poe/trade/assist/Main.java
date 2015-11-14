@@ -36,6 +36,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -49,7 +50,10 @@ import poe.trade.assist.util.Dialogs;
  
 public class Main extends Application {
     
-    public static void main(String[] args) {
+    private SearchPane searchPane;
+	private ResultPane resultPane;
+
+	public static void main(String[] args) {
         launch(args);
     }
  
@@ -60,8 +64,8 @@ public class Main extends Application {
     	List<Search> searchList = loadSearchListFromFile();
  
     	AutoSearchService autoSearchService = new AutoSearchService();
-        SearchPane searchPane = new SearchPane(searchList);
-        ResultPane resultPane = new ResultPane();
+        searchPane = new SearchPane(searchList);
+        resultPane = new ResultPane(this);
         
         autoSearchService.searchesProperty().bind(searchPane.dataProperty());
         resultPane.statusLabel.textProperty().bind(autoSearchService.messageProperty());
@@ -74,7 +78,9 @@ public class Main extends Application {
         
         autoSearchService.restart();
         
-        HBox container = new HBox(5, searchPane, resultPane);
+//        HBox container = new HBox(5, searchPane, resultPane);
+        SplitPane container = new SplitPane(searchPane, resultPane);
+        container.setDividerPositions(0.1);
         HBox.setHgrow(searchPane, Priority.ALWAYS);
         HBox.setHgrow(resultPane, Priority.ALWAYS);
         container.setMaxWidth(Double.MAX_VALUE);
@@ -83,8 +89,9 @@ public class Main extends Application {
         Scene scene = new Scene(root);
         stage.getIcons().add(new Image("/48px-Durian.png"));
         stage.setTitle("poe.trade.assist v5 (Durian)");
-        stage.setWidth(1200);
-        stage.setHeight(550);
+//        stage.setWidth(1200);
+//        stage.setHeight(550);
+        stage.setMaximized(true);
         stage.setScene(scene);
         stage.show();
     }
@@ -101,8 +108,8 @@ public class Main extends Application {
 
 	private List<Search> loadSearchListFromFile() {
 		List<Search> list = Arrays.asList(
-				new Search("Lakishu's Blade 3L", "http://poe.trade/search/nokagatasasaha", false),
-				new Search("Tabula 30c", "http://poe.trade/search/oremarohokinon", true)
+				new Search("Lakishu's Blade 3L", "http://poe.trade/search/nokagatasasaha", false, "price_in_chaos"),
+				new Search("Tabula 5c", "http://poe.trade/search/adeyubetedamit", true, "price_in_chaos")
 		);
 		// 1ex aegis http://poe.trade/search/atamiomimetami
 		// kaom's heart http://poe.trade/search/kuwahamigaruri
@@ -151,12 +158,12 @@ public class Main extends Application {
 				if (n.getAutoSearch() && list != null) {
 					resultPane.setSearch(n);
 				} else if(!n.getAutoSearch()) {
-					manualTaskRun(searchPane, resultPane, n);
+					manualTaskRun(n);
 				}
 			}
 		});
 		autoSearchService.setCallback(noOfItemsFound -> {
-			refreshResultColumn(searchPane);
+			refreshResultColumn();
 			Search search = searchPane.table.getSelectionModel().getSelectedItem();
         	if (search != null && search.getResultList() != null && search.getAutoSearch()) {
         		Platform.runLater(() -> resultPane.setSearch(search));
@@ -179,7 +186,7 @@ public class Main extends Application {
 		});
 	}
 
-	private void refreshResultColumn(SearchPane searchPane) {
+	public void refreshResultColumn() {
 		// workaround http://stackoverflow.com/questions/11065140/javafx-2-1-tableview-refresh-items
 		// yeah java sucks on some parts
 		Platform.runLater(() -> {
@@ -187,14 +194,14 @@ public class Main extends Application {
 			searchPane.getResultColumn().setVisible(true);
 		});
 	}
-
-	private void manualTaskRun(SearchPane searchPane, ResultPane resultPane, Search search) {
+	
+	public void manualTaskRun(Search search) {
 		String url = search.getUrl();
 		if (isNotBlank(url)) {
 			Task<Search> task = new Task<Search>() {
 				@Override
 				protected Search call() throws Exception {
-					String html = AutoSearchService.doDownload(search.getUrl());
+					String html = AutoSearchService.doDownload(search.getUrl(), search.getSort());
 					search.setHtml(html);
 					search.parseHtml();
 					return search;
@@ -204,17 +211,17 @@ public class Main extends Application {
 			resultPane.progressIndicator.visibleProperty().bind(task.runningProperty());
 			task.setOnSucceeded(e -> { 
 				resultPane.setSearch(task.getValue());
-				refreshResultColumn(searchPane);
+				refreshResultColumn();
 				});
 			task.setOnFailed(e -> {
 				Dialogs.showError(task.getException());
-				refreshResultColumn(searchPane);
+				refreshResultColumn();
 				});
 			new Thread(task).start();
 		} else {
 			resultPane.setSearch(search);
 		}
 	}
- 
+
 
 }

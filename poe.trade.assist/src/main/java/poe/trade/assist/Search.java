@@ -30,15 +30,17 @@ import poe.trade.assist.scraper.SearchPageScraper.SearchResultItem;
 
 public class Search {
 
-    public Search(String name, String url, Boolean autoSearch) {
+    public Search(String name, String url, Boolean autoSearch, String sort) {
     	this.name.set(name);
     	this.url.set(url);
     	this.autoSearch.set(autoSearch);
+    	this.sort.set(sort);
 	}
 	SimpleStringProperty name = new SimpleStringProperty();
 	SimpleStringProperty url = new SimpleStringProperty();
 	SimpleBooleanProperty autoSearch = new SimpleBooleanProperty();
 	SimpleStringProperty result = new SimpleStringProperty();
+	SimpleStringProperty sort = new SimpleStringProperty("price_in_chaos");
     
 	public String getName() {
 		return name.get();
@@ -64,7 +66,12 @@ public class Search {
 	public void setResult(String result) {
 		this.result.set(result);
 	}
-	
+	public String getSort() {
+		return sort.get();
+	}
+	public void setSort(String sort) {
+		this.sort.set(sort);
+	}
 	private String html;
 	private List<SearchResultItem> resultList = Arrays.asList(SearchResultItem.message("Waiting for autodownload..."));
 	
@@ -97,9 +104,9 @@ public class Search {
 		String name;
 		String url;
 		Boolean autoSearch;
-		
+		String sort;
 		public Search toSearch() {
-			Search search = new Search(name, url, autoSearch);
+			Search search = new Search(name, url, autoSearch, sort);
 			return search;
 		}
 	}
@@ -109,6 +116,8 @@ public class Search {
 		persist.name = getName();
 		persist.url  = getUrl();
 		persist.autoSearch = getAutoSearch();
+		persist.sort = getSort();
 		return persist;
 	}
+
 }

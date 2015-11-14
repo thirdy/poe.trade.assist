@@ -18,19 +18,20 @@
 package poe.trade.assist;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 
-import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.concurrent.Worker;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSObject;
+import poe.trade.assist.util.SwingUtil;
 
 /**
  * @author thirdy
@@ -42,17 +43,31 @@ public class SearchView extends StackPane {
 	private WebEngine webEngine = webView.getEngine();
 	
 	private ObjectProperty<Search> search = new SimpleObjectProperty<>();
+	private Main main;
 	public ObjectProperty<Search> searchProperty() {return search;}
 	
-	public SearchView() {
+	public SearchView(Main main) {
+		this.main = main;
 		search.addListener((obs, oldVal, newVal) -> {
 			if (newVal != null) {
-				String searchFormHtml = newVal.getHtml();
-				searchFormHtml = addHeadElements(searchFormHtml);
-				webEngine.loadContent(searchFormHtml);
+				reload();
+			}
+		});
+		webEngine.getLoadWorker().stateProperty().addListener((observ, oldVal, newVal) -> {
+			if (newVal.equals(Worker.State.SUCCEEDED)) {
+				JSObject window = (JSObject) webEngine.executeScript("window");
+				window.setMember("assistcallback", SearchView.this);
 			}
 		});
 		getChildren().add(webView);
+	}
+
+	public void reload() {
+		String searchFormHtml = search.get().getHtml();
+		if (searchFormHtml != null) {
+			searchFormHtml = addHeadElements(searchFormHtml);
+			webEngine.loadContent(searchFormHtml);
+		}
 	}
 
 	private String addHeadElements(String html) {
@@ -68,6 +83,8 @@ public class SearchView extends StackPane {
 		head.appendElement("script").attr("type", "text/javascript").attr("src", htmlDirectory + "packed.js");
 		head.appendElement("link").attr("rel", "stylesheet").attr("href", htmlDirectory + "packed_dark.css");
 		
+		doc.body().appendElement("script").attr("type", "text/javascript").attr("src", htmlDirectory + "assist.js");
+		
 		return doc.toString();
 	}
 
@@ -79,4 +96,12 @@ public class SearchView extends StackPane {
 		}
 	}
 
+	public void sortClick(String sort) {
+		System.out.println("SORT: " + sort);
+		search.get().setSort(sort);
+		main.manualTaskRun(search.get());
+	}
+	public void copyToClipboard(String s) {
+		SwingUtil.copyToClipboard(s);
+	}
 }

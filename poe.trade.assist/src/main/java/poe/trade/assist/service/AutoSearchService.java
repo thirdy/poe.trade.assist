@@ -80,7 +80,7 @@ public class AutoSearchService extends Service<Void> {
             			String url = search.getUrl();
 						if (isNotBlank(url) && search.getAutoSearch()) {
             				update(format("Downloading... %s %s", search.getName(), url));
-                			String html = doDownload(url);
+                			String html = doDownload(url, search.getSort());
 //                			FileUtils.writeStringToFile(new File(search.getName()), html);
                 			update(format("%s for %s %s", 
                 					html.isEmpty() ? "Failure" : "Success",
@@ -111,12 +111,12 @@ public class AutoSearchService extends Service<Void> {
         };
 	}
 
-	public static String doDownload(String url) {
+	public static String doDownload(String url, String sort) {
 		int count = 0;
 		int maxTries = 3;
 		while(true) {
 		    try {
-		    	return backendClient.postXMLHttpRequest(url, "sort=price_in_chaos&bare=true");
+		    	return backendClient.postXMLHttpRequest(url, "sort=" + sort + "&bare=true");
 		    } catch (Exception e) {
 		    	e.printStackTrace();
 		        if (++count == maxTries) break;

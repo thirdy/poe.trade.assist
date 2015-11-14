@@ -51,16 +51,20 @@ import poe.trade.assist.util.SwingUtil;
 public class ResultPane extends VBox {
 	
 	ListView<SearchResultItem> quickListView = new ListView<SearchResultItem>();
-	SearchForm searchForm = new SearchForm("Search Form");
-	SearchView searchView = new SearchView();
+//	SearchForm searchForm;
+	SearchView searchView;
 	Label statusLabel = new Label("Ready");
 	Button runNowButton = new Button("Run now");
 	TextField noOfMinsTextField = new TextField();
 	TextField soundFileTextField = new TextField();
-	Hyperlink website = new Hyperlink("http://thirdy.github.io/poe.trade.assist/");
-	ProgressIndicator progressIndicator = new ProgressIndicator(-1.0f);
 	
-	public ResultPane() {
+	ProgressIndicator progressIndicator = new ProgressIndicator(-1.0f);
+	private Main main;
+	
+	public ResultPane(Main main) {
+		this.main = main;
+		searchView = new SearchView(main);
+//		searchForm = new SearchForm("Search Form", main, this);
 		quickListView.setMaxWidth(Double.MAX_VALUE);
 		noOfMinsTextField.setPromptText("Minutes to sleep");
 		noOfMinsTextField.setPrefWidth(120);
@@ -75,23 +79,23 @@ public class ResultPane extends VBox {
 		progressIndicator.setVisible(false);
 		veilOfTheNight.visibleProperty().bind(progressIndicator.visibleProperty());
 		
-		website.setOnAction(e -> SwingUtil.openUrlViaBrowser(website.getText()));
+		
 		quickListView.setOnMouseClicked(this::listViewClicked);
 		
-		final Label label = new Label("Results");
-		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		setSpacing(5);
-		setPadding(new Insets(10, 0, 0, 10));
-		HBox hBox = new HBox(3, runNowButton, noOfMinsTextField, soundFileTextField);
+//		final Label label = new Label("Results");
+//		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+//		setSpacing(5);
+//		setPadding(new Insets(10, 0, 0, 10));
+		HBox hBox = new HBox(3, runNowButton, noOfMinsTextField, soundFileTextField, new TextFlow(new Label("Status: "), statusLabel));
 		hBox.setAlignment(Pos.CENTER_LEFT);
-		TabPane tabPane = new TabPane(new Tab("Compact", quickListView),
-				searchForm,
-				new Tab("Results", searchView));
+		TabPane tabPane = new TabPane(
+				new Tab("Results", searchView),
+//				searchForm,
+				new Tab("Compact", quickListView));
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		StackPane stackPane = new StackPane(tabPane, veilOfTheNight, progressIndicator);
 		stackPane.setMaxWidth(Double.MAX_VALUE);
-		getChildren().addAll(label, stackPane, hBox, new VBox(new TextFlow(new Label("Status: "), statusLabel), 
-				new TextFlow(new Text("Check for the latest updates at: "), website)));
+		getChildren().addAll( stackPane, hBox );
 		setMaxWidth(Double.MAX_VALUE);
 		setMargin(stackPane, new Insets(0, 11, 0, 0));
 		VBox.setVgrow(stackPane, Priority.ALWAYS);
@@ -139,8 +143,9 @@ public class ResultPane extends VBox {
 	}
 
 	public void setSearch(Search search) {
-		searchForm.searchProperty().set(search);
+//		searchForm.searchProperty().set(search);
 		searchView.searchProperty().set(search);
+		searchView.reload();
 		quickListView.setItems(FXCollections.observableArrayList(search.getResultList()));
 		
 	}
