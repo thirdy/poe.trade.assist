@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -61,10 +62,12 @@ import poe.trade.assist.util.Dialogs;
  
 public class Main extends Application {
     
-    private static final String LOCAL_SEARCH_FILE_NAME = "search.csv";
+    private static final String DEFAULT_SEARCH_CSV_FILE = "https://docs.google.com/spreadsheets/d/1V8r0mIn5njpmVYwFWpqnptAMI6udrIaqhCby1i79UGw/edit?usp=sharing";
+	private static final String LOCAL_SEARCH_FILE_NAME = "search.csv";
 	private SearchPane searchPane;
 	private ResultPane resultPane;
-	final TextField searchFileTextField = new TextField("https://docs.google.com/spreadsheets/d/1V8r0mIn5njpmVYwFWpqnptAMI6udrIaqhCby1i79UGw/edit?usp=sharing");
+	final TextField searchFileTextField = new TextField(DEFAULT_SEARCH_CSV_FILE);
+	private Config config;
 	public static void main(String[] args) {
         launch(args);
     }
@@ -72,6 +75,9 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
     	BorderPane root = new BorderPane();
+    	
+    	config = Config.load();
+    	config.get("search.file").ifPresent(searchFileTextField::setText);
     	
     	searchFileTextField.setPromptText("Search CSV File URL or blank");
 		searchFileTextField.setTooltip(new Tooltip("Any url to a valid poe.trade.assist CSV search file. Can be googlespreadsheet URL. If left blank, will load search.csv file instead"));
@@ -91,17 +97,29 @@ public class Main extends Application {
         	List<Search> newList = loadSearchListFromFile();
         	searchPane.dataProperty().clear();
         	searchPane.dataProperty().addAll(newList);
+        	autoSearchService.restart();
         };
         
 		searchFileTextField.setOnAction(reloadAction);
-        resultPane.reloadButton.setOnAction(reloadAction);
+        resultPane.loadButton.setOnAction(reloadAction);
+        resultPane.defaultButton.setOnAction(e -> {
+        	searchFileTextField.setText(DEFAULT_SEARCH_CSV_FILE);
+        	resultPane.loadButton.fire();
+        });
         
         resultPane.runNowButton.setOnAction(e -> autoSearchService.restart() );
 //        autoSearchService.minsToSleepProperty().bind(resultPane.noOfMinsTextField.textProperty());
         setupResultPaneBinding(searchPane, resultPane, autoSearchService);
         if(searchList.size() > 0) searchPane.searchTable.getSelectionModel().select(0);
         
-        stage.setOnCloseRequest(we -> saveSearchList(searchPane));
+        stage.setOnCloseRequest(we -> {
+        	saveSearchList(searchPane);
+        	config.setProperty("search.file", searchFileTextField.getText());
+        	config.setProperty("sound.file", resultPane.soundButton.getUserData().toString());
+        	config.save();
+        });
+        
+        config.get("sound.file").ifPresent(resultPane.soundButton::setUserData);
         
         autoSearchService.restart();
         
@@ -223,14 +241,14 @@ public class Main extends Application {
 		return records;
 	}
 
-	private void saveSearchesToFile(String csv) {
-		File file = getSearchFile();
-		try {
-			FileUtils.writeStringToFile(file, csv);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+//	private void saveSearchesToFile(String csv) {
+//		File file = getSearchFile();
+//		try {
+//			FileUtils.writeStringToFile(file, csv);
+//		} catch (IOException e) {
+//			throw new RuntimeException(e);
+//		}
+//	}
 
 	private File getSearchFile() {
 		File file = new File(LOCAL_SEARCH_FILE_NAME);

@@ -18,8 +18,10 @@
 package poe.trade.assist;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -85,7 +87,14 @@ public class SearchView extends StackPane {
 		
 		doc.body().appendElement("script").attr("type", "text/javascript").attr("src", htmlDirectory + "assist.js");
 		
-		return doc.toString();
+		String cleanHTML = doc.toString();
+//		try {
+//			FileUtils.writeStringToFile(new File("test"), cleanHTML);
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+		return cleanHTML;
 	}
 
 	private String htmlDirectory() {

@@ -52,8 +52,10 @@ public class TableViewPlus<S> extends TableView<S> {
     		getColumns().add(column);
     	});
     	
-    	IntStream.range(0, getColumns().size())
+    	if (minWidths != null) {
+    		IntStream.range(0, getColumns().size())
     		.forEach(i -> getColumns().get(i).setMinWidth(minWidths[i]));
+		}
     	
         // 1. Wrap the ObservableList in a FilteredList (initially display all data).
         filteredData = new FilteredList<>(masterData, p -> true);

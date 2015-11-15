@@ -50,10 +50,12 @@ import poe.trade.assist.util.SwingUtil;
 
 public class ResultPane extends VBox {
 	
-	ListView<SearchResultItem> quickListView = new ListView<SearchResultItem>();
+//	ListView<SearchResultItem> quickListView = new ListView<SearchResultItem>();
+	SearchCompactView searchCompactView = new SearchCompactView();
 //	SearchForm searchForm;
 	SearchView searchView;
-	Button reloadButton = new Button("Reload");
+	Button loadButton = new Button("Load");
+	Button defaultButton = new Button("Default");
 	Button runNowButton = new Button("Run now");
 //	TextField noOfMinsTextField = new TextField();
 //	TextField soundFileTextField = new TextField();
@@ -67,7 +69,7 @@ public class ResultPane extends VBox {
 		 
 		searchView = new SearchView(main);
 //		searchForm = new SearchForm("Search Form", main, this);
-		quickListView.setMaxWidth(Double.MAX_VALUE);
+		searchCompactView.setMaxWidth(Double.MAX_VALUE);
 //		noOfMinsTextField.setPromptText("Minutes to sleep");
 //		noOfMinsTextField.setPrefWidth(120);
 //		soundFileTextField.setPromptText("Path to sound file, can be mp3, acc, wav");
@@ -76,7 +78,7 @@ public class ResultPane extends VBox {
 //		soundFileTextField.setText(new File("notification.wav").getAbsolutePath());
 		soundButton.setUserData(new File("notification.wav").getAbsolutePath());
 		soundButton.setOnAction(e -> openSoundFileChooseDialog());
-		setupTooltip();
+//		setupTooltip();
 		setupSelectionListener();
 		Region veilOfTheNight = new Region();
 		veilOfTheNight.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3)");
@@ -84,19 +86,19 @@ public class ResultPane extends VBox {
 		veilOfTheNight.visibleProperty().bind(progressIndicator.visibleProperty());
 		
 		
-		quickListView.setOnMouseClicked(this::listViewClicked);
+		searchCompactView.searchTable.setOnMouseClicked(this::listViewClicked);
 		
 //		final Label label = new Label("Results");
 //		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 //		setSpacing(5);
 //		setPadding(new Insets(10, 0, 0, 10));
-		HBox hBox = new HBox(3, new Label("Search: "), searchFileTextField, reloadButton, soundButton, runNowButton);
+		HBox hBox = new HBox(3, new Label("Search: "), searchFileTextField, loadButton, defaultButton, soundButton, runNowButton);
 		hBox.setPadding(new Insets(0, 5, 0, 5));
 		hBox.setAlignment(Pos.CENTER_LEFT);
 		TabPane tabPane = new TabPane(
 				new Tab("Results", searchView),
 //				searchForm,
-				new Tab("Compact", quickListView));
+				new Tab("Compact", searchCompactView));
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		StackPane stackPane = new StackPane(tabPane, veilOfTheNight, progressIndicator);
 		stackPane.setMaxWidth(Double.MAX_VALUE);
@@ -107,7 +109,7 @@ public class ResultPane extends VBox {
 	}
 
 	private void listViewClicked(MouseEvent me) {
-		SearchResultItem item = quickListView.getSelectionModel().getSelectedItem();
+		SearchResultItem item = searchCompactView.searchTable.getSelectionModel().getSelectedItem();
 		if (me.getClickCount() > 1 && item != null) {
 			SearchResultItemDialog.show(item);
 		}
@@ -127,32 +129,32 @@ public class ResultPane extends VBox {
 	}
 
 	private void setupSelectionListener() {
-		quickListView.getSelectionModel().selectedItemProperty().addListener((obrv, oldVal, newVal) -> {
+		searchCompactView.searchTable.getSelectionModel().selectedItemProperty().addListener((obrv, oldVal, newVal) -> {
 			if (newVal != null) {
 				SwingUtil.copyToClipboard(newVal.toString());
 			}
 		});
 	}
 
-	private void setupTooltip() {
-		Tooltip tooltip = new Tooltip();
-		quickListView.getSelectionModel().selectedItemProperty().addListener((ob, o, n) -> {
-			if (n != null) {
-				SearchResultItem item = quickListView.getSelectionModel().getSelectedItem();
-				String msg = item != null ? item.toStringObject() : "";
-				tooltip.setText(msg);
-				quickListView.setTooltip(tooltip);
-			} else {
-				quickListView.setTooltip(null);
-			}
-		});
-	}
+//	private void setupTooltip() {
+//		Tooltip tooltip = new Tooltip();
+//		searchCompactView.getSelectionModel().selectedItemProperty().addListener((ob, o, n) -> {
+//			if (n != null) {
+//				SearchResultItem item = quickListView.getSelectionModel().getSelectedItem();
+//				String msg = item != null ? item.toStringObject() : "";
+//				tooltip.setText(msg);
+//				quickListView.setTooltip(tooltip);
+//			} else {
+//				quickListView.setTooltip(null);
+//			}
+//		});
+//	}
 
 	public void setSearch(Search search) {
 //		searchForm.searchProperty().set(search);
 		searchView.searchProperty().set(search);
 		searchView.reload();
-		quickListView.setItems(FXCollections.observableArrayList(search.getResultList()));
+		searchCompactView.dataProperty().set(FXCollections.observableArrayList(search.getResultList()));
 		
 	}
 }
