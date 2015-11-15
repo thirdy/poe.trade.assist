@@ -35,6 +35,9 @@ import poe.trade.assist.util.Dialogs;
  */
 public class Config extends Properties {
 
+	public static final String SEARCH_MINUTES = "search.minutes";
+	public static final String AUTO_ENABLE = "auto.enable";
+
 	public static Config load() {
 		Config config = new Config();
 		File file = getFile();
@@ -44,8 +47,14 @@ public class Config extends Properties {
 			e.printStackTrace();
 			Dialogs.showError(e);
 		}
+		config.putIfAbsent(SEARCH_MINUTES, "10");
+		config.putIfAbsent(AUTO_ENABLE, "true");
+		
 		return config;
 	}
+
+	static final String SEARCH_FILE = "search.file";
+	static final String SOUND_FILE = "sound.file";
 	
 	public Optional<String> get(String key) {
 		return Optional.ofNullable(getProperty(key));

@@ -30,6 +30,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.MouseEvent;

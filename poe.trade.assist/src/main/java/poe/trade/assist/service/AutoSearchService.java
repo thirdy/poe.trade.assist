@@ -54,8 +54,13 @@ public class AutoSearchService extends Service<Void> {
 
     // Just a way to provide notifications when searches' elements has been updated
 	private Consumer<Integer> callback;
+
+	private boolean autoEnabled;
+	private int searchMins;
     
-    public AutoSearchService() {
+    public AutoSearchService(boolean autoEnabled, int searchMins) {
+    	this.autoEnabled = autoEnabled;
+    	this.searchMins = searchMins;
 		setOnSucceeded(e -> restart());
 		setOnFailed	 (e -> {
 			getException().printStackTrace();
@@ -69,6 +74,13 @@ public class AutoSearchService extends Service<Void> {
 			restart();
 		});
 	}
+    
+    @Override
+    public void restart() {
+    	if (autoEnabled) {
+    		super.restart();
+		}
+    }
     
 	@Override
     protected Task<Void> createTask() {
@@ -95,8 +107,7 @@ public class AutoSearchService extends Service<Void> {
 					}
 					callback.accept(numberOfItemsFound);
             		
-            		int sleepMins = 10;
-					int mins = 60 * sleepMins;
+					int mins = 60 * searchMins;
             		
 					for (int i = mins; i >= 0; i--) {
 						update("Sleeping... " + i);

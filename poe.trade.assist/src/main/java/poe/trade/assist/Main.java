@@ -77,7 +77,7 @@ public class Main extends Application {
     	BorderPane root = new BorderPane();
     	
     	config = Config.load();
-    	config.get("search.file").ifPresent(searchFileTextField::setText);
+    	config.get(Config.SEARCH_FILE).ifPresent(searchFileTextField::setText);
     	
     	searchFileTextField.setPromptText("Search CSV File URL or blank");
 		searchFileTextField.setTooltip(new Tooltip("Any url to a valid poe.trade.assist CSV search file. Can be googlespreadsheet URL. If left blank, will load search.csv file instead"));
@@ -86,7 +86,10 @@ public class Main extends Application {
     	
     	List<Search> searchList = loadSearchListFromFile();
  
-    	AutoSearchService autoSearchService = new AutoSearchService();
+		AutoSearchService autoSearchService = new AutoSearchService(
+    			Boolean.parseBoolean(config.get(Config.AUTO_ENABLE).get()),
+    			Integer.parseInt(config.get(Config.SEARCH_MINUTES).get())
+    			);
         searchPane = new SearchPane(searchList);
         resultPane = new ResultPane(searchFileTextField, this);
         
@@ -114,12 +117,12 @@ public class Main extends Application {
         
         stage.setOnCloseRequest(we -> {
         	saveSearchList(searchPane);
-        	config.setProperty("search.file", searchFileTextField.getText());
-        	config.setProperty("sound.file", resultPane.soundButton.getUserData().toString());
+        	config.setProperty(Config.SEARCH_FILE, searchFileTextField.getText());
+        	config.setProperty(Config.SOUND_FILE, resultPane.soundButton.getUserData().toString());
         	config.save();
         });
         
-        config.get("sound.file").ifPresent(resultPane.soundButton::setUserData);
+        config.get(Config.SOUND_FILE).ifPresent(resultPane.soundButton::setUserData);
         
         autoSearchService.restart();
         
