@@ -107,7 +107,6 @@ public class SearchPane extends VBox {
 		
 		final VBox vb = new VBox(3, addName, addTags, addURL, hb);
 
-		https://docs.google.com/spreadsheets/d/1SWEQbdQxdahrIIQrs8RjpAw2cm_QOc53KDyezS80mwM/pub?gid=0&single=true&output=csv
 		setSpacing(5);
 		setPadding(new Insets(10, 0, 0, 10));
 		getChildren().addAll(tagFilterField, nameFilterField, searchTable, vb, info,

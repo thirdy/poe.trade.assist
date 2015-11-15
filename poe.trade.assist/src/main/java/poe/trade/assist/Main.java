@@ -101,6 +101,7 @@ public class Main extends Application {
         	searchPane.dataProperty().clear();
         	searchPane.dataProperty().addAll(newList);
         	autoSearchService.restart();
+        	if(searchPane.dataProperty().size() > 0) searchPane.searchTable.getSelectionModel().select(0);
         };
         
 		searchFileTextField.setOnAction(reloadAction);
