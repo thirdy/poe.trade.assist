@@ -53,25 +53,29 @@ public class ResultPane extends VBox {
 	ListView<SearchResultItem> quickListView = new ListView<SearchResultItem>();
 //	SearchForm searchForm;
 	SearchView searchView;
-	Label statusLabel = new Label("Ready");
+	Button reloadButton = new Button("Reload");
 	Button runNowButton = new Button("Run now");
-	TextField noOfMinsTextField = new TextField();
-	TextField soundFileTextField = new TextField();
+//	TextField noOfMinsTextField = new TextField();
+//	TextField soundFileTextField = new TextField();
+	Button soundButton = new Button("Sound");
 	
 	ProgressIndicator progressIndicator = new ProgressIndicator(-1.0f);
 	private Main main;
 	
-	public ResultPane(Main main) {
+	public ResultPane(TextField searchFileTextField, Main main) {
 		this.main = main;
+		 
 		searchView = new SearchView(main);
 //		searchForm = new SearchForm("Search Form", main, this);
 		quickListView.setMaxWidth(Double.MAX_VALUE);
-		noOfMinsTextField.setPromptText("Minutes to sleep");
-		noOfMinsTextField.setPrefWidth(120);
-		soundFileTextField.setPromptText("Path to sound file, can be mp3, acc, wav");
-		soundFileTextField.setPrefWidth(415);
-		soundFileTextField.setOnMouseClicked(e -> openSoundFileChooseDialog());
-		soundFileTextField.setText(new File("notification.wav").getAbsolutePath());
+//		noOfMinsTextField.setPromptText("Minutes to sleep");
+//		noOfMinsTextField.setPrefWidth(120);
+//		soundFileTextField.setPromptText("Path to sound file, can be mp3, acc, wav");
+//		soundFileTextField.setPrefWidth(415);
+//		soundFileTextField.setOnMouseClicked(e -> openSoundFileChooseDialog());
+//		soundFileTextField.setText(new File("notification.wav").getAbsolutePath());
+		soundButton.setUserData(new File("notification.wav").getAbsolutePath());
+		soundButton.setOnAction(e -> openSoundFileChooseDialog());
 		setupTooltip();
 		setupSelectionListener();
 		Region veilOfTheNight = new Region();
@@ -86,7 +90,8 @@ public class ResultPane extends VBox {
 //		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 //		setSpacing(5);
 //		setPadding(new Insets(10, 0, 0, 10));
-		HBox hBox = new HBox(3, runNowButton, noOfMinsTextField, soundFileTextField, new TextFlow(new Label("Status: "), statusLabel));
+		HBox hBox = new HBox(3, new Label("Search: "), searchFileTextField, reloadButton, soundButton, runNowButton);
+		hBox.setPadding(new Insets(0, 5, 0, 5));
 		hBox.setAlignment(Pos.CENTER_LEFT);
 		TabPane tabPane = new TabPane(
 				new Tab("Results", searchView),
@@ -116,7 +121,8 @@ public class ResultPane extends VBox {
 		         new ExtensionFilter("All Files", "*.*"));
 		 File selectedFile = fileChooser.showOpenDialog(this.getScene().getWindow());
 		 if (selectedFile != null) {
-			 soundFileTextField.setText(selectedFile.getAbsolutePath());
+//			 soundFileTextField.setText(selectedFile.getAbsolutePath());
+			 soundButton.setUserData(selectedFile.getAbsolutePath());
 		 }
 	}
 

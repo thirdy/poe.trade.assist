@@ -20,33 +20,45 @@ package poe.trade.assist;
 import java.util.Arrays;
 import java.util.List;
 
-import org.controlsfx.control.PropertySheet.Item;
-
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import poe.trade.assist.scraper.SearchPageScraper;
 import poe.trade.assist.scraper.SearchPageScraper.SearchResultItem;
 
 public class Search {
 
-    public Search(String name, String url, Boolean autoSearch, String sort) {
+    public Search(String name, String tags, String url, Boolean autoSearch, String sort) {
     	this.name.set(name);
+    	this.tags.set(tags);
     	this.url.set(url);
     	this.autoSearch.set(autoSearch);
     	this.sort.set(sort);
 	}
 	SimpleStringProperty name = new SimpleStringProperty();
+	SimpleStringProperty tags = new SimpleStringProperty();
 	SimpleStringProperty url = new SimpleStringProperty();
 	SimpleBooleanProperty autoSearch = new SimpleBooleanProperty();
 	SimpleStringProperty result = new SimpleStringProperty();
 	SimpleStringProperty sort = new SimpleStringProperty("price_in_chaos");
+	
+	public SimpleStringProperty nameProperty() {  return name; }
+	public SimpleStringProperty tagsProperty() {  return tags; }
+	public SimpleStringProperty urlProperty() {  return url; }
+	public SimpleBooleanProperty autoSearchProperty() {  return autoSearch; }
+	public SimpleStringProperty resultProperty() {  return result; }
+	public SimpleStringProperty sortProperty() {  return sort; }
     
 	public String getName() {
 		return name.get();
 	}
 	public void setName(String name) {
 		this.name.set(name);
+	}
+	public String getTags() {
+		return tags.get();
+	}
+	public void setTags(String tags) {
+		this.tags.set(tags);
 	}
 	public String getUrl() {
 		return url.get();
@@ -102,18 +114,33 @@ public class Search {
 	
 	public static class SearchPersist {
 		String name;
+		String tags;
 		String url;
 		Boolean autoSearch;
 		String sort;
+		
+		public SearchPersist() {}
+		public SearchPersist(String name, String tags, String url, Boolean autoSearch, String sort) {
+			this.name = name;
+			this.tags = tags;
+			this.url = url;
+			this.autoSearch = autoSearch;
+			this.sort = sort;
+		}
+
 		public Search toSearch() {
-			Search search = new Search(name, url, autoSearch, sort);
+			Search search = new Search(name, tags, url, autoSearch, sort);
 			return search;
+		}
+		public String[] toCSVArray() {
+			return new String[] {name, tags, url, autoSearch.toString(), sort};
 		}
 	}
 	
 	public SearchPersist toSearchPersist() {
 		SearchPersist persist = new SearchPersist();
 		persist.name = getName();
+		persist.tags = getTags();
 		persist.url  = getUrl();
 		persist.autoSearch = getAutoSearch();
 		persist.sort = getSort();

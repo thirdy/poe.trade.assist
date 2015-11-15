@@ -47,8 +47,8 @@ public class AutoSearchService extends Service<Void> {
     private ListProperty<Search> searches = new SimpleListProperty<>();
     public ListProperty<Search> searchesProperty() {return searches;}
     
-    private StringProperty minsToSleep = new SimpleStringProperty();
-    public StringProperty minsToSleepProperty() {return minsToSleep;}
+//    private StringProperty minsToSleep = new SimpleStringProperty();
+//    public StringProperty minsToSleepProperty() {return minsToSleep;}
     
     private static final BackendClient backendClient = new BackendClient();
 
@@ -95,8 +95,8 @@ public class AutoSearchService extends Service<Void> {
 					}
 					callback.accept(numberOfItemsFound);
             		
-            		String sleepMins = minsToSleep.get();
-					int mins = 60 * (NumberUtils.isParsable(sleepMins) ? Integer.parseInt(sleepMins) : 5);
+            		int sleepMins = 10;
+					int mins = 60 * sleepMins;
             		
 					for (int i = mins; i >= 0; i--) {
 						update("Sleeping... " + i);

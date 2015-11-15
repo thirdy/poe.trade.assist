@@ -93,7 +93,7 @@ public class SearchForm extends Tab {
 				if (StringUtils.isNotBlank(webEngine.getLocation()) 
 						&& !search.get().getUrl().equalsIgnoreCase(webEngine.getLocation())) {
 					search.get().setUrl(webEngine.getLocation());
-					main.refreshResultColumn();
+//					main.refreshResultColumn();
 //					main.selectFromSearchList(search.get());
 //					SearchForm.this.getTabPane().getSelectionModel().clearAndSelect(0);
 				}

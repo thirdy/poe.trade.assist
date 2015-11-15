@@ -17,7 +17,18 @@
  */
 package poe.trade.assist;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.collect.ImmutableMap;
 
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -29,18 +40,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import poe.trade.assist.fx.TableViewPlus;
 import poe.trade.assist.util.SwingUtil;
 
 public class SearchPane extends VBox {
@@ -54,11 +66,16 @@ public class SearchPane extends VBox {
 	TableColumn<Search, String> resultCol = new TableColumn<>("Result");
 
 	final TextField addName = new TextField();
+	final TextField addTags = new TextField();
 	final TextField addURL = new TextField();
 	final CheckBox addAuto = new CheckBox("Auto");
 	final Button addButton = new Button("Add");
 	final Button remButton = new Button("Rem");
-	TableView<Search> table = new TableView<>();
+//	TableView<Search> table = new TableView<>();
+	TableViewPlus<Search> searchTable;
+	TextField tagFilterField;
+	TextField nameFilterField;
+	
 	Hyperlink website = new Hyperlink("http://thirdy.github.io/poe.trade.assist/");
 	Label info = new Label("poe.trade.assist is fan made tool and is not affiliated with Grinding Gear Games in any way. " + System.lineSeparator() + "This software 100% free and open source under GPLv2 license.");
 
@@ -66,54 +83,120 @@ public class SearchPane extends VBox {
 		data = new SimpleListProperty<>(
 				FXCollections.observableArrayList(searchList));
 		website.setOnAction(e -> SwingUtil.openUrlViaBrowser(website.getText()));
-		table.setEditable(false);
-		table.setItems(data);
-		table.setPrefWidth(500);
-		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		setupSearchTable();
+		setupFilterTextField();
 		info.setWrapText(true);
-
-		setupColumns();
+		
+//		setupColumns();
 		setupAddFields();
 		setupTableClickListener();
 
 		addButton.setOnAction((ActionEvent e) -> {
-			data.add(new Search(addName.getText(), addURL.getText(), addAuto.isSelected(), "price_in_chaos"));
+			data.add(new Search(addName.getText(), addTags.getText(), addURL.getText(), addAuto.isSelected(), "price_in_chaos"));
 			addName.clear();
+			addTags.clear();
 			addURL.clear();
 			addAuto.setSelected(false);
 		});
 		
 		remButton.setOnAction((ActionEvent e) -> {
-			int index = table.getSelectionModel().getSelectedIndex();
-			if (index != -1) {
-				table.getItems().remove(index);
-			}
+			int index = searchTable.getSelectionModel().getSelectedIndex();
+//			if (index != -1) {
+//				searchTable.getItems().remove(index);
+//			}
+			searchTable.remove(index);
 		});
 
 		final HBox hb = new HBox(3);
-		HBox.setHgrow(addName, Priority.ALWAYS);
 		hb.getChildren().addAll(addAuto, addButton, remButton);
 		
-		final VBox vb = new VBox(3, addName, addURL, hb);
+		final VBox vb = new VBox(3, addName, addTags, addURL, hb);
 
-		final Label label = new Label("Search List");
-		label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-
+		https://docs.google.com/spreadsheets/d/1SWEQbdQxdahrIIQrs8RjpAw2cm_QOc53KDyezS80mwM/pub?gid=0&single=true&output=csv
 		setSpacing(5);
 		setPadding(new Insets(10, 0, 0, 10));
-		getChildren().addAll(label, table, vb, info,
+		getChildren().addAll(tagFilterField, nameFilterField, searchTable, vb, info,
 				new TextFlow(new Text("Check for the latest updates at: "), website)
 				);
-		VBox.setVgrow(table, Priority.ALWAYS);
+		VBox.setVgrow(searchTable, Priority.ALWAYS);
 		setMaxWidth(Double.MAX_VALUE);
+	}
+	
+	private void setupFilterTextField() {
+		nameFilterField = new TextField();
+		nameFilterField.setMinWidth(200);
+		nameFilterField.setPromptText("filter by name");
+		
+		tagFilterField = new TextField();
+		tagFilterField.setMinWidth(200);
+		tagFilterField.setPromptText("filter by tags, csv");
+		
+		tagFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
+			searchTable.getFilteredData().setPredicate(tagPredicate().and(namePredicate()));
+		});
+		
+		nameFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
+			searchTable.getFilteredData().setPredicate(tagPredicate().and(namePredicate()));
+		});
+	}
+	
+	private Predicate<Search> tagPredicate() {
+		Predicate<Search> tagPredicate = search -> {
+			String filter = tagFilterField.getText();
+			if (isBlank(filter)) {
+				return true;
+			}
+			filter = filter.toLowerCase();
+			List<String> filterTags = Arrays.asList(split(filter, ','));
+			List<String> itemTags = Arrays.asList(split(trimToEmpty(search.getTags()).toLowerCase(), ','));
+			System.out.println(itemTags);
+			boolean found = itemTags.stream().anyMatch(itemTag -> filterTags.contains(itemTag));
+			System.out.println(found);
+			return found;
+		};
+		return tagPredicate;
+	}
+	
+	private Predicate<Search> namePredicate() {
+		Predicate<Search> tagPredicate = search -> {
+			String filter = nameFilterField.getText();
+			if (isBlank(filter)) {
+				return true;
+			}
+			filter = filter.toLowerCase();
+			String name = StringUtils.trimToEmpty(search.getName()).toLowerCase();
+			boolean found = name.contains(filter);
+			return found;
+		};
+		return tagPredicate;
+	}
+	
+	private void setupSearchTable() {
+		searchTable = new TableViewPlus<>(ImmutableMap.of(
+				"Name", "name",
+				"Result", "result",
+				"Auto", "autoSearch",
+				"Tags", "tags",
+				"URL", "url"
+				),
+				new double[] {200, 40, 40, 150, 200},
+				data);
+		
+		searchTable.setEditable(false);
+		searchTable.setPrefWidth(500);
+		searchTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		
+//		modMappingTable.setMaxHeight(Double.MAX_VALUE);
+//		modMappingTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//		modMappingTable.setId("modMappingTable");
 	}
 
 	private void setupTableClickListener() {
-		table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+		searchTable.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getClickCount() > 1) {
-                    Search search = table.getSelectionModel().getSelectedItem();
+                    Search search = searchTable.getSelectionModel().getSelectedItem();
                     if (search != null) {
 						SwingUtil.openUrlViaBrowser(search.getUrl());
 					}
@@ -124,46 +207,47 @@ public class SearchPane extends VBox {
 
 	private void setupAddFields() {
 		addName.setPromptText("Name");
+		addTags.setPromptText("Tags, comma separated");
 //		addName.setMinWidth(100);
 		addURL.setPromptText("URL");
 		addURL.setMinWidth(200);
 	}
 
-	@SuppressWarnings("unchecked")
-	private void setupColumns() {
-//		Callback<TableColumn<Search, String>, TableCell<Search, String>> cellTextFieldFactory = (
-//				TableColumn<Search, String> p) -> new EditingTextFieldCell();
-//		Callback<TableColumn<Search, Boolean>, TableCell<Search, Boolean>> cellCheckboxFactory = (
-//						TableColumn<Search, Boolean> p) -> new EditingCheckboxCell();
+//	@SuppressWarnings("unchecked")
+//	private void setupColumns() {
+////		Callback<TableColumn<Search, String>, TableCell<Search, String>> cellTextFieldFactory = (
+////				TableColumn<Search, String> p) -> new EditingTextFieldCell();
+////		Callback<TableColumn<Search, Boolean>, TableCell<Search, Boolean>> cellCheckboxFactory = (
+////						TableColumn<Search, Boolean> p) -> new EditingCheckboxCell();
+//
+//		nameCol.setMinWidth(150);
+//		nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+////		nameCol.setCellFactory(cellTextFieldFactory);
+////		nameCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
+////			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).name.set(t.getNewValue());
+////		});
+//
+//		urlCol.setMinWidth(200);
+//		urlCol.setCellValueFactory(new PropertyValueFactory<>("url"));
+////		urlCol.setCellFactory(cellTextFieldFactory);
+////		urlCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
+////			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).url.set(t.getNewValue());
+////		});
+//		
+//		autoSearchCol.setMinWidth(40);
+//		autoSearchCol.setCellValueFactory(new PropertyValueFactory<>("autoSearch"));
+////		autoSearchCol.setCellFactory(cellCheckboxFactory);
+////		autoSearchCol.setOnEditCommit((CellEditEvent<Search, Boolean> t) -> {
+////			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).autoSearch.set(t.getNewValue());
+////		});
+//		
+//		resultCol.setMinWidth(40);
+//		resultCol.setCellValueFactory(new PropertyValueFactory<>("result"));
+//
+//		table.getColumns().addAll(nameCol, autoSearchCol, resultCol, urlCol);
+//	}
 
-		nameCol.setMinWidth(150);
-		nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-//		nameCol.setCellFactory(cellTextFieldFactory);
-//		nameCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
-//			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).name.set(t.getNewValue());
-//		});
-
-		urlCol.setMinWidth(200);
-		urlCol.setCellValueFactory(new PropertyValueFactory<>("url"));
-//		urlCol.setCellFactory(cellTextFieldFactory);
-//		urlCol.setOnEditCommit((CellEditEvent<Search, String> t) -> {
-//			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).url.set(t.getNewValue());
-//		});
-		
-		autoSearchCol.setMinWidth(40);
-		autoSearchCol.setCellValueFactory(new PropertyValueFactory<>("autoSearch"));
-//		autoSearchCol.setCellFactory(cellCheckboxFactory);
-//		autoSearchCol.setOnEditCommit((CellEditEvent<Search, Boolean> t) -> {
-//			((Search) t.getTableView().getItems().get(t.getTablePosition().getRow())).autoSearch.set(t.getNewValue());
-//		});
-		
-		resultCol.setMinWidth(40);
-		resultCol.setCellValueFactory(new PropertyValueFactory<>("result"));
-
-		table.getColumns().addAll(nameCol, autoSearchCol, resultCol, urlCol);
-	}
-
-	public TableColumn getResultColumn() {
-		return resultCol;
-	}
+//	public TableColumn getResultColumn() {
+//		return resultCol;
+//	}
 }
