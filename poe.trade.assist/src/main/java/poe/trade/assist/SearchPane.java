@@ -60,10 +60,10 @@ public class SearchPane extends VBox {
 	private ListProperty<Search> data;
 	public ListProperty<Search> dataProperty(){return data;}
 
-	TableColumn<Search, String> nameCol = new TableColumn<>("Name");
-	TableColumn<Search, String> urlCol = new TableColumn<>("URL");
-	TableColumn<Search, Boolean> autoSearchCol = new TableColumn<>("Auto");
-	TableColumn<Search, String> resultCol = new TableColumn<>("Result");
+//	TableColumn<Search, String> nameCol = new TableColumn<>("Name");
+//	TableColumn<Search, String> urlCol = new TableColumn<>("URL");
+//	TableColumn<Search, Boolean> autoSearchCol = new TableColumn<>("Auto");
+//	TableColumn<Search, String> resultCol = new TableColumn<>("Result");
 
 	final TextField addName = new TextField();
 	final TextField addTags = new TextField();
@@ -179,7 +179,7 @@ public class SearchPane extends VBox {
 				"Tags", "tags",
 				"URL", "url"
 				),
-				new double[] {200, 40, 40, 150, 200},
+				new double[] {130, 40, 40, 150, 200},
 				data);
 		
 		searchTable.setEditable(false);
