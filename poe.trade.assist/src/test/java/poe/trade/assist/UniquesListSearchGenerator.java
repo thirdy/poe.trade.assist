@@ -54,7 +54,8 @@ public class UniquesListSearchGenerator {
 			String hardcore = "Hardcore";
 	        String tempsc = "Darkshrine+%28IC003%29";
 	        String temphc = "Darkshrine+HC+%28IC004%29";
-	        System.out.println("Name	Standard	Hardcore	DarkshrineSC	DarkshrineHC");
+	        System.out.println(uniques.length);
+	        System.out.println("Name	Standard	Hardcore	DarkshrineSC	DarkshrineHC	poewiki");
 			for (String unique : uniques) {
 				String name = URLEncoder.encode(unique);
 				String sc = getSearchURL(standard, name);
