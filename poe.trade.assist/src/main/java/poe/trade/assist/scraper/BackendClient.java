@@ -94,13 +94,13 @@ public class BackendClient {
 //        post.setEntity(new UrlEncodedFormEntity(postParams));
         post.setEntity(new StringEntity(payload));
 
-        System.out.println("\nSending 'POST' request to URL : " + url);
+//        System.out.println("\nSending 'POST' request to URL : " + url);
         // bombs away!
         HttpResponse response = client.execute(post);
 
         int responseCode = response.getStatusLine().getStatusCode();
 
-        System.out.println("Response Code : " + responseCode);
+//        System.out.println("Response Code : " + responseCode);
 
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
@@ -115,10 +115,10 @@ public class BackendClient {
         
         String location = null;
         
-        System.out.println("Response Headers:");
+//        System.out.println("Response Headers:");
         final Header[] allHeaders = response.getAllHeaders();
         for (Header header : allHeaders) {
-            System.out.println(header.toString());
+//            System.out.println(header.toString());
             if (header.getName().equalsIgnoreCase("Location")) {
                 location = header.getValue();
             }
