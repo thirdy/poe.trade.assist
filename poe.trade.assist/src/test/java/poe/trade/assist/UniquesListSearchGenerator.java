@@ -19,9 +19,13 @@ package poe.trade.assist;
 
 import static java.lang.String.format;
 
+import java.io.File;
 import java.net.URLEncoder;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -54,7 +58,8 @@ public class UniquesListSearchGenerator {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		System.out.println("Name	Art	Req.Level	Base	Mods	DarkshrineSC	DarkshrineHC	Standard	Hardcore	poewiki");
+		List<String> outputLines = new LinkedList<>(); 
+		outputLines.add("Name	Art	Req.Level	Base	Mods	TaslismanSC	TalismanHC	Standard	Hardcore	poewiki");
 		for (String list : lists) {
 			HttpResponse<String> response = Unirest.get("http://pathofexile.gamepedia.com/" + list)
 				.header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0")
@@ -72,7 +77,8 @@ public class UniquesListSearchGenerator {
 						continue;
 					} 
 					String name = row.child(0).child(0).attr("title");
-					String imgurl = "=IMAGE(\"" + row.select("img").attr("src") + "\")";
+					System.out.println("Now processing: " + name);
+					String imgurl = "=IMAGE(\"" + row.select("img").attr("src") + "\", 3)";
 					String base = row.child(1).child(0).attr("title");
 					String reqLvl = hasRequiredLevel ? row.child(2).text() : "0";
 					reqLvl = reqLvl.equalsIgnoreCase("n/a") ? "0" : reqLvl;
@@ -95,29 +101,32 @@ public class UniquesListSearchGenerator {
 					
 					String standard = "Standard";
 					String hardcore = "Hardcore";
-			        String tempsc = "Darkshrine+%28IC003%29";
-			        String temphc = "Darkshrine+HC+%28IC004%29";
+			        String tempsc = "Talisman";
+			        String temphc = "Talisman+Hardcore";
 			        String nameenc = URLEncoder.encode(name, "UTF-8");
-					String sc = getSearchURL(standard, nameenc);
-					String hc = getSearchURL(hardcore, nameenc);
-					String tsc = getSearchURL(tempsc, nameenc);
-					String thc = getSearchURL(temphc, nameenc);
-					String poewikiurl = "http://thirdy.github.io/poewiki/index.html?page=" + (name.replace(' ', '_'));
+					String sc = hyperlink(getSearchURL(standard, nameenc));
+					String hc = hyperlink(getSearchURL(hardcore, nameenc));
+					String tsc = hyperlink(getSearchURL(tempsc, nameenc));
+					String thc = hyperlink(getSearchURL(temphc, nameenc));
+					String poewikiurl = hyperlink("http://pathofexile.gamepedia.com/" + (name.replace(' ', '_')));
 					
-					System.out.println(format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", name, imgurl, reqLvl, base, mod, tsc, thc, sc, hc, poewikiurl));
-					
+					String s = format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", name, imgurl, reqLvl, base, mod, tsc, thc, sc, hc, poewikiurl);
+					outputLines.add(s);
 					Thread.sleep(1000);
 				}
 			}
 		}
-		
-		
-
+		FileUtils.writeLines(new File("uniqueslist.txt"), outputLines);
 	}
 	
 	
+	private static String hyperlink(String url) {
+		return format("=HYPERLINK(\"%s\", \"link\")", url);
+	}
+
+
 	private static String getSearchURL(String league, String name)  {
-		String payload = String.format("league=%s&type=&base=&name=%s&dmg_min=&dmg_max=&aps_min=&aps_max=&crit_min=&crit_max=&dps_min=&dps_max=&edps_min=&edps_max=&pdps_min=&pdps_max=&armour_min=&armour_max=&evasion_min=&evasion_max=&shield_min=&shield_max=&block_min=&block_max=&sockets_min=&sockets_max=&link_min=&link_max=&sockets_r=&sockets_g=&sockets_b=&sockets_w=&linked_r=&linked_g=&linked_b=&linked_w=&rlevel_min=&rlevel_max=&rstr_min=&rstr_max=&rdex_min=&rdex_max=&rint_min=&rint_max=&impl=&impl_min=&impl_max=&mod_name=&mod_min=&mod_max=&group_type=And&group_min=&group_max=&group_count=1&q_min=&q_max=&level_min=&level_max=&mapq_min=&mapq_max=&rarity=unique&seller=&thread=&identified=&corrupted=&online=x&buyout=x&altart=&capquality=x&buyout_min=&buyout_max=&buyout_currency=&crafted=",
+		String payload = format("league=%s&type=&base=&name=%s&dmg_min=&dmg_max=&aps_min=&aps_max=&crit_min=&crit_max=&dps_min=&dps_max=&edps_min=&edps_max=&pdps_min=&pdps_max=&armour_min=&armour_max=&evasion_min=&evasion_max=&shield_min=&shield_max=&block_min=&block_max=&sockets_min=&sockets_max=&link_min=&link_max=&sockets_r=&sockets_g=&sockets_b=&sockets_w=&linked_r=&linked_g=&linked_b=&linked_w=&rlevel_min=&rlevel_max=&rstr_min=&rstr_max=&rdex_min=&rdex_max=&rint_min=&rint_max=&impl=&impl_min=&impl_max=&mod_name=&mod_min=&mod_max=&group_type=And&group_min=&group_max=&group_count=1&q_min=&q_max=&level_min=&level_max=&mapq_min=&mapq_max=&rarity=unique&seller=&thread=&identified=&corrupted=&online=x&buyout=x&altart=&capquality=x&buyout_min=&buyout_max=&buyout_currency=&crafted=",
 				league, name );
 		int tries = 50;
 		String searchPage = null;
