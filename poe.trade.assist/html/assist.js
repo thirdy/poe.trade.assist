@@ -20,3 +20,10 @@ function sendWhisper(o) {
     //window.prompt("Copy message to clipboard by pressing Ctrl+C", message);
     assistcallback.copyToClipboard(message);
 }
+
+// 2016-01-16, poe.trade finally improved their whispher function, we need to adjust a bit
+
+$('.whisper-btn').click( function() {
+    sendWhisper(this)
+    $(this).text("Copied to clipboard");
+} );
