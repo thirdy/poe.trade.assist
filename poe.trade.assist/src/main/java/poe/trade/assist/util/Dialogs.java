@@ -19,11 +19,13 @@ package poe.trade.assist.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Optional;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
@@ -63,6 +65,14 @@ public class Dialogs {
 		alert.getDialogPane().setExpandableContent(expContent);
 
 		alert.showAndWait();
+	}
+	
+	public static Optional<String> showInput(String title, String message) {
+	      TextInputDialog textInput = new TextInputDialog();
+	      textInput.setTitle(title);
+	      textInput.setHeaderText(title);
+	      textInput.setContentText(message);
+	      return textInput.showAndWait();
 	}
 
 }

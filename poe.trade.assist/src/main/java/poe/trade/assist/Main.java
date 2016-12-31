@@ -61,8 +61,10 @@ import poe.trade.assist.service.AutoSearchService;
 import poe.trade.assist.util.Dialogs;
  
 public class Main extends Application {
+//	http://poe.trade/search/iwarikikikoiat
+    private static final String DEFAULT_SEARCH_CSV_FILE 
+    	= "https://docs.google.com/spreadsheets/d/10mb4jxFuux8u0lqeoR8ydE1Gm3YKpe2IT7tsNuN8pKw/edit?usp=sharing";
     
-    private static final String DEFAULT_SEARCH_CSV_FILE = "https://docs.google.com/spreadsheets/d/1V8r0mIn5njpmVYwFWpqnptAMI6udrIaqhCby1i79UGw/edit?usp=sharing";
 	private static final String LOCAL_SEARCH_FILE_NAME = "search.csv";
 	private SearchPane searchPane;
 	private ResultPane resultPane;

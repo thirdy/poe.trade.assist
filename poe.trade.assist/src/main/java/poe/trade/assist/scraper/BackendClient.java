@@ -138,19 +138,34 @@ public class BackendClient {
     	post.setConfig(requestConfig);
     	
     	// add header
-    	post.setHeader("Accept", "*/*");
+//    	post.setHeader("Accept", "*/*");
+//    	post.setHeader("Accept-Encoding", "gzip, deflate");
+//    	post.setHeader("Accept-Language", "en-US,en;q=0.5");
+//    	post.setHeader("Cache-Control", "no-cache");
+//    	post.setHeader("Connection", "keep-alive");
+////    	post.setHeader("Content-Length", String.valueOf(entity.getContentLength()));
+//    	post.setHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+////        post.setHeader("Cookie", "_ga=GA1.2.750449977.1440808734; league=Warbands; _gat=1; mb_uid2=6130147680410288830"); // _ga=GA1.2.750449977.1440808734; league=Warbands; _gat=1; mb_uid2=6130147680410288830
+//    	post.setHeader("Host", "poe.trade");
+//    	post.setHeader("Pragma", "no-cache");
+//    	post.setHeader("Referer", url);
+//    	post.setHeader("User-Agent", USER_AGENT);
+//    	post.setHeader("X-Requested-With", "XMLHttpRequest");
+    	
+    	post.setHeader("Host","poe.trade");
+    	post.setHeader("Connection","keep-alive");
+//    	post.setHeader("Content-Length",String.valueOf(entity.getContentLength()));
+    	post.setHeader("Cache-Control","max-age=0");
+    	post.setHeader("Origin","http://poe.trade");
+    	post.setHeader("Upgrade-Insecure-Requests","1");
+    	post.setHeader("User-Agent","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
+    	post.setHeader("Content-type","application/x-www-form-urlencoded");
+    	post.setHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
     	post.setHeader("Accept-Encoding", "gzip, deflate");
     	post.setHeader("Accept-Language", "en-US,en;q=0.5");
-    	post.setHeader("Cache-Control", "no-cache");
-    	post.setHeader("Connection", "keep-alive");
-//    	post.setHeader("Content-Length", String.valueOf(entity.getContentLength()));
-    	post.setHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-//        post.setHeader("Cookie", "_ga=GA1.2.750449977.1440808734; league=Warbands; _gat=1; mb_uid2=6130147680410288830"); // _ga=GA1.2.750449977.1440808734; league=Warbands; _gat=1; mb_uid2=6130147680410288830
-    	post.setHeader("Host", "poe.trade");
-    	post.setHeader("Pragma", "no-cache");
     	post.setHeader("Referer", url);
-    	post.setHeader("User-Agent", USER_AGENT);
-    	post.setHeader("X-Requested-With", "XMLHttpRequest");
+        post.setHeader("Cookie","__cfduid=d03c6f347eae223a8d6e0a54a07e3b21f1480833467; cf_clearance=c513ae763bcd95e2a7cacd69855ad5180a70fd32-1482347774-31536000");
+    	
     	
 //        post.setEntity(new UrlEncodedFormEntity(postParams));
 		post.setEntity(entity);
